@@ -1,0 +1,26 @@
+#ifndef DART_CAN_BAUDRATE_H_
+#define DART_CAN_BAUDRATE_H_
+
+/**
+ * Definition for the baudrate of a CAN bus.
+ */
+typedef enum {
+    CAN_RATE_5KBPS,
+    CAN_RATE_10KBPS,
+    CAN_RATE_20KBPS,
+    CAN_RATE_31K25BPS,
+    CAN_RATE_33KBPS,
+    CAN_RATE_40KBPS,
+    CAN_RATE_50KBPS,
+    CAN_RATE_80KBPS,
+    CAN_RATE_83K3BPS,
+    CAN_RATE_95KBPS,
+    CAN_RATE_100KBPS,
+    CAN_RATE_125KBPS,
+    CAN_RATE_200KBPS,
+    CAN_RATE_250KBPS,
+    CAN_RATE_500KBPS,
+    CAN_RATE_1000KBPS
+} CAN_Baudrate_t;
+
+#endif
