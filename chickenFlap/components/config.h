@@ -23,12 +23,14 @@
 // Define max. battery cell voltage
 #define BATTERY_MAX_CELL_VOLTAGE 1800 //mV
 
-// Define the Time the motor needs to open / close the door. This is depending on the battery voltage
-#define MOTOR_RUNNING_TIME 10000 // ms
+// Defines the distance that the flap should move during opening and closing
+#define FLAP_MOTION_DISTANCE 200 // mm
+// Define motor speed with full charged battery
+#define MAX_MOTOR_SPEED 4 // mm per second
 
 // Define the number of selection blocks in the menu / timer interface on the display. 0 to number-1 is a valid value
 #define MENU_SELECT_BLOCKS_NUMBER 1
-#define TIMER_SELECT_BLOCKS_NUMBER 1
+#define TIMER_SELECT_BLOCKS_NUMBER 6
 
 // If the button is pressed longer than here given, the digits of the watch and the timer rise/sink faster when you set them
 #define PRESSED_BUTTON_TIME_FOR_FAST_NUMBER_RISE 5000 //ms
@@ -58,6 +60,8 @@
 #define FLAP_CLOSED 0
 #define FLAP_OPENED 1
 #define VOLTAGE_REFERENCE 3300 // mV
+// Define the Time the motor needs to open / close the door. This is depending on the battery voltage
+#define MAX_MOTOR_RUNNING_TIME 10000 // ms
 
 
 
