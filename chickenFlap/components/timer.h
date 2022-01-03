@@ -12,8 +12,15 @@
 #include "watch.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
+typedef enum {
+	TIMER_DEACTIVE,
+	TIMER_ONLY_CLOSE,
+	TIMER_ONLY_OPEN,
+	TIMER_ACTIVE
+} timerState_t;
+
 typedef struct{
-	bool timerOn;
+	timerState_t timerState;
 
 	// Time when the flap should close
 	uint8_t openFlapTime_Dec_H;
@@ -42,6 +49,8 @@ bool checkIfTimeToClose();
  * @param true --> timer-opening can start
  */
 bool checkIfTimeToOpen();
+
+void nextTimerState(timerState_t nextTimerState);
 
 
 #endif

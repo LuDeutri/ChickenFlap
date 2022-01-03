@@ -4,7 +4,7 @@ void display_init(){
 	display.displayEnable = true;
 	display.displayPage = DISPLAY_HOME;
 	display.menuSelect = MENU_SELECT_WATCH;
-	display.timerSelect = TIMER_SELECT_CLOSING;
+	display.timerSelect = TIMER_SELECT_NONE;
 	display.timerTimeSelect = TIMER_TIME_SELECT_NONE;
 	display.watchSelect = WATCH_SELECT_NONE;
 }
@@ -18,21 +18,60 @@ void display_update(){
 	displayStateMachine();
 }
 
+// TODO Sämtliche Puts auf koordinaten untersuchen und anpassen damits angezeigt wird wies soll
+
 void displayStateMachine() {
 	// Clear the hole display
-	SSD1306_Fill(SSD1306_COLOR_BLACK);
+	SSD1306_Clear();
 
 	//---------------- Information line at the top START----------------
-	// Timer status ( ON / OFF)
+	// Timer status ( ON / OFF / ONLY OPENING / ONLY CLOSING)
 	char* tmpStrTimState = "Timer: ";
 
-	if (timer.timerOn)
+	switch(timer.timerState){
+	case TIMER_ACTIVE:
 		strcat(tmpStrTimState, "ON");
-	else
+		break;
+	case TIMER_DEACTIVE:
 		strcat(tmpStrTimState, "OFF");
-
+		break;
+	case TIMER_ONLY_OPEN:
+		strcat(tmpStrTimState, "ONLY OPENING");
+		break;
+	case TIMER_ONLY_CLOSE:
+		strcat(tmpStrTimState, "ONLY CLOSING");
+		break;
+	default:
+		strcat(tmpStrTimState, "---");
+		break;
+	}
 	SSD1306_GotoXY(5,5);
 	SSD1306_Puts(tmpStrTimState, &Font_7x10, 1);
+
+	// Flap status (OPENED / CLOSED / OPENING / CLOSING)
+	char* tmpStrFlapState = "Flap: ";
+
+	switch(stateMachine.state){
+	case STATE_FLAP_OPEN:
+		if(flap.motorIsRuning)
+			strcat(tmpStrFlapState, "OPENING");
+		else
+			strcat(tmpStrFlapState, "OPENED");
+		break;
+	case STATE_FLAP_CLOSE:
+		if(flap.motorIsRuning)
+			strcat(tmpStrFlapState, "CLOSING");
+		else
+			strcat(tmpStrFlapState, "CLOSED");
+		break;
+	default:
+		strcat(tmpStrFlapState, "---");
+		break;
+	}
+	if(flap.motorIsRuning && millis() % 1000 > 500){ // Blinks if motor is running
+		SSD1306_GotoXY(5,10);
+		SSD1306_Puts(tmpStrFlapState, &Font_7x10, 1);
+	}
 
 	// Battery capacity
 	char* tmpStrBatCapacity = "";
@@ -46,50 +85,84 @@ void displayStateMachine() {
 	// Show cut line
 	SSD1306_DrawLine(0,20,127,22,SSD1306_COLOR_WHITE);
 
-
-	// TODO darstellen ob Klappe gerade offen/geschlossen ist bzw. gerade öffnet/schließt
-	// TODO Sämtliche Puts auf koordinaten untersuchen und anpassen damits angezeigt wird wies soll
-
-
 	//---------------- Information line at the top END----------------
 
 	//------------------- Timer Information START -------------------
-	if(timer.timerOn){ // Show only if the timer is activated
-		char tmpStrTimFlapOpen[40];
-		sprintf(tmpStrTimFlapOpen, "open: %d %d : %d %d | close: %d %d : %d %d",
+
+	char* tmpStrFlapTime = "";
+
+	// If opening function of the timer is active, show opening time
+	if(timer.timerState == TIMER_ONLY_OPEN){
+		char tmpStrFlapOpenTime[20];
+		sprintf(tmpStrFlapOpenTime, "open: %d %d : %d %d",
 			timer.openFlapTime_Dec_H,
 			timer.openFlapTime_One_H,
 			timer.openFlapTime_Dec_M,
-			timer.openFlapTime_One_M,
+			timer.openFlapTime_One_M
+		);
+		strcat(tmpStrFlapTime, tmpStrPercent);
+	}
+
+	// If opening and closing function are active, show cut line between them
+	if(timer.timerState == TIMER_ACTIVE){
+		char* tmpStrTimFlapActive = "|";
+		strcat(tmpStrFlapTime, tmpStrTimFlapActive);
+	}
+
+	// If closing function of the timer is active, show closing time
+	if(timer.timerState == TIMER_ONLY_CLOSE){
+		char tmpStrTimFlapClose[20];
+		sprintf(tmpStrTimFlapClose, "close: %d %d : %d %d",
 			timer.closeFlapTime_Dec_H,
 			timer.closeFlapTime_One_H,
 			timer.closeFlapTime_Dec_M,
 			timer.closeFlapTime_One_M
 		);
-		SSD1306_GotoXY(5,25);
-		SSD1306_Puts(tmpStrBatCapacity, &Font_7x10, 1);
+		strcat(tmpStrFlapTime, tmpStrTimFlapClose);
 	}
+
+	SSD1306_GotoXY(5,10);
+	SSD1306_Puts(tmpStrFlapTime, &Font_7x10, 1);
+
 	//------------------- Timer Information END -------------------
 
-	char tmpStrHomeWatch[15];
+	char tmpStrDisplayTimer[20];
+
+	char tmpStrWatch[15];
+	sprintf(tmpStrWatch,"%d %d  :  %d %d",
+		watch.watchDecHour,
+		watch.watchOneHour,
+		watch.watchDecMinute,
+		watch.watchOneMinute
+	);
+
+	char tmpStrOpeningTime[20];
+	sprintf(tmpStrOpeningTime,"%d %d  :  %d %d",
+		timer.openFlapTime_Dec_H,
+		timer.openFlapTime_One_H,
+		timer.openFlapTime_Dec_M,
+		timer.openFlapTime_One_M
+	);
+
+	char tmpStrClosingTime[20];
+	sprintf(tmpStrClosingTime,"%d %d  :  %d %d",
+		timer.closeFlapTime_Dec_H,
+		timer.closeFlapTime_One_H,
+		timer.closeFlapTime_Dec_M,
+		timer.closeFlapTime_One_M
+	);
+
+	// Display navigation blocks
 	char* tmpStrMenuWatch = "Watch";
 	char* tmpStrMenuTimer = "Timer";
 	char* tmpStrMenuEnter = "Enter";
 	char* tmpStrMenuBack = "Back";
-	char tmpStrWatchTime[15];
-	char tmpStrTimerCloseTime[15];
-	char tmpStrTimerOpenTime[15];
+
 	switch(DISPLAY_HOME) {
 	case DISPLAY_HOME:
 		//------------------------- Watch START -------------------------
-		sprintf(tmpStrHomeWatch,"%d %d  :  %d %d",
-			watch.watchDecHour,
-			watch.watchOneHour,
-			watch.watchDecMinute,
-			watch.watchOneMinute);
-
 		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrHomeWatch, &Font_7x10, 1);
+		SSD1306_Puts(tmpStrWatch, &Font_7x10, 1);
 		//------------------------- Watch END -------------------------
 
 		//--------------------- Menu block START ---------------------
@@ -138,14 +211,8 @@ void displayStateMachine() {
 		if(millis() % 2000 > 1000 && display.watchSelect > WATCH_SELECT_NONE) // Blink if digits are setting
 			break;
 
-		sprintf(tmpStrWatchTime,"%d %d  :  %d %d",
-			watch.watchDecHour,
-			watch.watchOneHour,
-			watch.watchDecMinute,
-			watch.watchOneMinute);
-
 		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrHomeWatch, &Font_7x10, 1);
+		SSD1306_Puts(tmpStrWatch, &Font_7x10, 1);
 
 		// Enter Block
 		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
@@ -155,35 +222,114 @@ void displayStateMachine() {
 
 		break;
 	case DISPLAY_TIMER:
-		if(millis() % 2000 > 1000) // Blinks
-			// Show nothing
+
+		// Mark actually chosen action
+		switch(display.timerSelect){
+		case TIMER_SELECT_NONE:
+			// Nothing marked
 			break;
+		case TIMER_SELECT_OPENING_ACTIVATE:
+			SSD1306_DrawRectangle(8, 30, 15, 31, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(9, 29, 14, 30, SSD1306_COLOR_BLACK);
+			break;
+		case TIMER_SELECT_OPENING_DEACTIVATE:
+			SSD1306_DrawRectangle(48, 30, 15, 32, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(49, 29, 14, 31, SSD1306_COLOR_BLACK);
+			break;
+		case TIMER_SELECT_OPENING_SET_TIME:
+			SSD1306_DrawRectangle(88, 30, 15, 32, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(89, 29, 14, 31, SSD1306_COLOR_BLACK);
+			break;
+		case TIMER_SELECT_CLOSING_ACTIVATE:
+			SSD1306_DrawRectangle(8, 40, 15, 31, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(9, 39, 14, 30, SSD1306_COLOR_BLACK);
+			break;
+		case TIMER_SELECT_CLOSING_DEACTIVATE:
+			SSD1306_DrawRectangle(48, 40, 15, 32, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(49, 39, 14, 31, SSD1306_COLOR_BLACK);
+			break;
+		case TIMER_SELECT_CLOSING_SET_TIME:
+			SSD1306_DrawRectangle(88, 40, 15, 32, SSD1306_COLOR_WHITE);
+			SSD1306_DrawRectangle(89, 39, 14, 31, SSD1306_COLOR_BLACK);
+			break;
+		default:
+			// Do nothing
+			break;
+		}
 
-		// Close Time
-		sprintf(tmpStrTimerCloseTime,"%d %d  :  %d %d",
-			timer.closeFlapTime_Dec_H,
-			timer.closeFlapTime_One_H,
-			timer.closeFlapTime_Dec_M,
-			timer.closeFlapTime_One_M
-		);
-		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrHomeWatch, &Font_7x10, 1);
+		//--------------------- OPENING Configurations ---------------------
+		strcpy(tmpStrDisplayTimer, "Opening:");
+		SSD1306_GotoXY(5,30);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
 
-		// Open Time
-		sprintf(tmpStrTimerOpenTime,"%d %d  :  %d %d",
-			timer.openFlapTime_Dec_H,
-			timer.openFlapTime_One_H,
-			timer.openFlapTime_Dec_M,
-			timer.openFlapTime_One_M
-		);
-		SSD1306_GotoXY(70,40);
-		SSD1306_Puts(tmpStrHomeWatch, &Font_7x10, 1);
+		// Activate Block
+		SSD1306_DrawRectangle(10, 30, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(11, 29, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Activate");
+		SSD1306_GotoXY(13,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+		// Dectivate Block
+		SSD1306_DrawRectangle(50, 30, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(51, 29, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Deactivate");
+		SSD1306_GotoXY(53,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+		// Time set Block
+		SSD1306_DrawRectangle(90, 30, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(91, 29, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Set Time");
+		SSD1306_GotoXY(93,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+
+		//--------------------- CLOSING Configurations ---------------------
+		strcpy(tmpStrDisplayTimer, "Closing:");
+		SSD1306_GotoXY(5,40);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+		// Activate Block
+		SSD1306_DrawRectangle(10, 40, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(11, 39, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Activate");
+		SSD1306_GotoXY(13,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+		// Dectivate Block
+		SSD1306_DrawRectangle(50, 40, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(51, 39, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Deactivate");
+		SSD1306_GotoXY(53,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
+		// Time set Block
+		SSD1306_DrawRectangle(90, 40, 15, 30, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(91, 39, 14, 29, SSD1306_COLOR_BLACK);
+		strcpy(tmpStrDisplayTimer, "Set Time");
+		SSD1306_GotoXY(93,35);
+		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+
 
 		// Enter Block
+		SSD1306_DrawRectangle(110, 55, 20, 20, SSD1306_COLOR_WHITE);
+		SSD1306_DrawRectangle(111, 56, 19, 19, SSD1306_COLOR_BLACK);
+		SSD1306_GotoXY(115,60);
+		SSD1306_Puts(tmpStrMenuEnter, &Font_7x10, 1);
+
+		// Back Block
 		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
 		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
 		SSD1306_GotoXY(80,55);
-		SSD1306_Puts(tmpStrMenuEnter, &Font_7x10, 1);
+		SSD1306_Puts(tmpStrMenuBack, &Font_7x10, 1);
+		break;
+	case DISPLAY_TIMER_OPENING:
+		SSD1306_GotoXY(70,40);
+		SSD1306_Puts(tmpStrOpeningTime, &Font_7x10, 1);
+		break;
+	case DISPLAY_TIMER_CLOSING:
+		SSD1306_GotoXY(30,40);
+		SSD1306_Puts(tmpStrClosingTime, &Font_7x10, 1);
 		break;
 	default:
 		// Do nothing
@@ -335,7 +481,7 @@ void displayNavigation(){
 		}
 		break;
 	case DISPLAY_TIMER:
-		// With Back back to DISPLAY_MENU
+		// With Back or enter if no action is selected back to DISPLAY_MENU
 		if (button.buttonMenuBack && button.onePingIfButtonPressed) {
 			nextDisplayPage(DISPLAY_MENU);
 
@@ -358,11 +504,95 @@ void displayNavigation(){
 				// Decrease if its all right
 				display.menuSelect--;
 
-		// Switch to chosen Display Page with Enter
-		} else if (display.timerSelect == TIMER_SELECT_CLOSING && button.buttonMenuEnter && button.onePingIfButtonPressed)
-			nextDisplayPage(DISPLAY_TIMER_CLOSING);
-		else if (display.timerSelect == TIMER_SELECT_OPENING && button.buttonMenuEnter && button.onePingIfButtonPressed)
+		// Do chosen action
+		} else if (display.timerSelect == TIMER_SELECT_NONE || !button.buttonMenuEnter || !button.onePingIfButtonPressed)
+			break;
+
+		switch(display.timerSelect){
+		case TIMER_SELECT_NONE:
+			nextDisplayPage(DISPLAY_MENU);
+			break;
+
+		case TIMER_SELECT_OPENING_ACTIVATE:
+			switch(timer.timerState){
+			case TIMER_ONLY_OPEN ... TIMER_ACTIVE:
+				// Stay like before
+				break;
+			case TIMER_ONLY_CLOSE:
+				nextTimerState(TIMER_ACTIVE);
+				break;
+			case TIMER_DEACTIVE:
+				nextTimerState(TIMER_ONLY_OPEN);
+				break;
+			default:
+				// Do nothing
+				break;
+			}
+			break;
+		case TIMER_SELECT_OPENING_DEACTIVATE:
+			switch(timer.timerState){
+			case TIMER_DEACTIVE ... TIMER_ONLY_CLOSE:
+				// Stay like before
+				break;
+			case TIMER_ONLY_OPEN:
+				nextTimerState(TIMER_DEACTIVE);
+				break;
+			case TIMER_ACTIVE:
+				nextTimerState(TIMER_ONLY_CLOSE);
+				break;
+			default:
+				// Do nothing
+				break;
+			}
+			break;
+		case TIMER_SELECT_OPENING_SET_TIME:
 			nextDisplayPage(DISPLAY_TIMER_OPENING);
+			break;
+		case TIMER_SELECT_CLOSING_ACTIVATE:
+			switch(timer.timerState){
+			case TIMER_ONLY_CLOSE:
+				// Stay like before
+				break;
+			case TIMER_ACTIVE:
+				// Stay like before
+				break;
+			case TIMER_ONLY_OPEN:
+				nextTimerState(TIMER_ACTIVE);
+				break;
+			case TIMER_DEACTIVE:
+				nextTimerState(TIMER_ONLY_CLOSE);
+				break;
+			default:
+				// Do nothing
+				break;
+			}
+			break;
+		case TIMER_SELECT_CLOSING_DEACTIVATE:
+			switch(timer.timerState){
+			case TIMER_DEACTIVE:
+				// Stay like before
+				break;
+			case TIMER_ONLY_OPEN:
+				// Stay like before
+				break;
+			case TIMER_ONLY_CLOSE:
+				nextTimerState(TIMER_DEACTIVE);
+				break;
+			case TIMER_ACTIVE:
+				nextTimerState(TIMER_ONLY_OPEN);
+				break;
+			default:
+				// Do nothing
+				break;
+			}
+			break;
+		case TIMER_SELECT_CLOSING_SET_TIME:
+			nextDisplayPage(DISPLAY_TIMER_CLOSING);
+			break;
+		default:
+			// Do nothing
+			break;
+		}
 		break;
 	case DISPLAY_TIMER_CLOSING:
 		// With Back back to DISPLAY_TIMER
