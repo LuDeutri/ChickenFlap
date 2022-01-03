@@ -58,4 +58,10 @@ void stopMotor();
  */
 bool safetyTest();
 
+/*
+ *Calculate the stoping time of the motor, depending on the given distance of the flap, the battery voltage and the max. motor speed
+ *@return Time on which the motor should stops
+ */
+uint32_t calculateMotorStopTime();
+
 #endif

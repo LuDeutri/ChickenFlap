@@ -42,9 +42,7 @@ void motorCtrl(uint8_t direction) {
 	}
 
 	// Wait for timer and stop motor
-	// TODO Motor aktive zeit von Batteriespannung abhängig machen.
-	// TODO Funktion entsprechend umbauen, sodass der Weg eingegeben werden muss, welchen die Klappe in die Höhe zurücklegen soll
-	if (millis() > motorStartingTime + MOTOR_RUNNING_TIME) {
+	if (millis() >= motorStartingTime + MAX_MOTOR_RUNNING_TIME || (millis() >= calculateMotorStopTime())) {
 		digitalWrite(MOTOR_FLAP_OPEN, LOW);
 		digitalWrite(MOTOR_FLAP_CLOSE, LOW);
 
@@ -64,4 +62,15 @@ bool safetyTest(){
 	if(digitalRead(MOTOR_FLAP_OPEN) == HIGH && digitalRead(MOTOR_FLAP_CLOSE) == HIGH)
 		return true;
 	return false;
+}
+
+uint32_t calculateMotorStopTime(){
+	float tmpBatteryCapacity = bms.batteryCapapcityPercentage/60;
+	if (tmpBatteryCapacity >= 1)
+		tmpBatteryCapacity = 1;
+
+	uint8_t motorSpeed = MAX_MOTOR_SPEED * tmpBatteryCapacity;
+
+	// time = distance/speed
+	return motorStartingTime + (FLAP_MOTION_DISTANCE / motorSpeed);
 }
