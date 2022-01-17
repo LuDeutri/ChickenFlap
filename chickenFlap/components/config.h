@@ -27,6 +27,8 @@
 #define FLAP_MOTION_DISTANCE 200 // mm
 // Define motor speed with full charged battery
 #define MAX_MOTOR_SPEED 4 // mm per second
+// Define default motor running time if no battery data are used
+#define DEFAULT_MOTOR_RUNNING_TIME 20 // s
 
 // Define the number of selection blocks in the menu / timer interface on the display. 0 to number-1 is a valid value
 #define MENU_SELECT_BLOCKS_NUMBER 1

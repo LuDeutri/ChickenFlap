@@ -41,4 +41,6 @@ void chickenFlap_init();
  */
 void chickenFlap_update();
 
+void i2cTest();
+
 #endif

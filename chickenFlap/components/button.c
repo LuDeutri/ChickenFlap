@@ -53,9 +53,12 @@ void setButtonTime(){
 }
 
 void buttonFlapCtrl(){
-	// Flap ctrl
+	// Stop if button is not pressed
+	if(button.buttonFlapCtrl == LOW)
+		return;
+
 	// Pushing the button in the sleepmode will not registry as button pressing. Its only to wakeup from sleep mode.
-	if (button.buttonFlapCtrl == HIGH && stateMachine.state == STATE_SLEEP)
+	if (stateMachine.state == STATE_SLEEP)
 		return;
 
 	// Stopping the flap when the motor is already running

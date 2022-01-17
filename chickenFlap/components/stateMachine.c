@@ -15,9 +15,10 @@ void stateMachine_update(){
 	switch(stateMachine.state){
 	case STATE_INIT:
 		//Wait until the OLED display is ready
-		if(SSD1306_Init()<=0)
-			return;
-
+		if(!SSD1306.Initialized){
+			ssd1306_Init();
+			break;
+		}
 		// Runtime must be higher than 1000 ms  to continue to the next state. This is to ensure everything is ready to work.
 		if(millis()>1000)
 			nextState(STATE_FLAP_CLOSE);
@@ -61,10 +62,13 @@ void stateMachine_update(){
 
 	// Update Debug LED
 	if (stateMachine.state==STATE_ERROR){
-		digitalWrite(DEBUG_LED, millis() % 500 > 250); // Error case: LED blinks faster
+		digitalWrite(DEBUG_LED, LOW); // Error case: LED blinks faster
 		digitalWrite(ERROR_LED, LOW);
+	} else if (stateMachine.state == STATE_INIT){
+		digitalWrite(DEBUG_LED, millis() % 500 > 250);
+		digitalWrite(ERROR_LED, millis() % 1000 > 500);
 	} else {
-		digitalWrite(DEBUG_LED, millis() % 1000 > 500); // Normal operation: LED blinks slowly
+		digitalWrite(DEBUG_LED, millis() % 3000 > 1500); // Normal operation: LED blinks slowly
 		if (millis()>5000)
 			digitalWrite(ERROR_LED, HIGH);
 	}
@@ -80,12 +84,13 @@ void nextState(state_t nextState){
 	if (stateMachine.state == nextState)
 		return;
 
+	dartUART_formatLine(UART_LOG, "[%d ms] state change: %d -> %d", millis(), stateMachine.state, (int)nextState);
 	stateMachine.lastState = stateMachine.state;
 	stateMachine.state = nextState;
 	stateMachine.firstTimeInState = millis();
 }
 
 void checkActivity(){
-	if (millis() < button.lastTimeButtonPressed + TIME_TO_SLEEP_MODE)
+	if (millis() > button.lastTimeButtonPressed + TIME_TO_SLEEP_MODE)
 		nextState(STATE_SLEEP);
 }

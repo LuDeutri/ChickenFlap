@@ -32,7 +32,7 @@
 //#define HAL_ENABLE_CAN
 #define HAL_ENABLE_ADC
 #define HAL_ENABLE_GPIO
-//#define HAL_ENABLE_UART
+#define HAL_ENABLE_UART
 #define HAL_ENABLE_I2C
 //#define HAL_ENABLE_SPI
 //#define HAL_ENABLE_PWM
@@ -57,7 +57,7 @@ extern ADC_HandleTypeDef hadc1;
 //extern CAN_HandleTypeDef hcan;
 extern I2C_HandleTypeDef hi2c1;
 //extern SPI_HandleTypeDef hspi2;
-//extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart1;
 //extern UART_HandleTypeDef huart2;
 //extern TIM_HandleTypeDef htim1;
 //extern TIM_HandleTypeDef htim2;
@@ -86,12 +86,12 @@ extern I2C_HandleTypeDef hi2c1;
  * Defines the mapping of the logical ADC channels to the physical ADC channels.
  * Count of channels MUST be equal to ADC_CHANNEL_COUNT.
  */
-#define ADC_MAP_CHANNELS { ADC_CHANNEL_0 }
+#define ADC_MAP_CHANNELS { ADC_CHANNEL_9 }
 
 // Constants for mapping the physical name to logical ADC channel.
-#define ANALOG_ADC1_IN0 0
+#define ANALOG_ADC1_IN9 0
 
-#define ADC_BATTERY_VOLTAGE ANALOG_ADC1_IN0
+#define ADC_BATTERY_VOLTAGE ANALOG_ADC1_IN9
 
 #define ANALOG_SAMPLE_TIME ADC_SAMPLETIME_13CYCLES_5
 
@@ -99,46 +99,51 @@ extern I2C_HandleTypeDef hi2c1;
 /**
  * Defines the count of digital channels available.
  */
-#define DIGITAL_CHANNEL_COUNT 10
+#define DIGITAL_CHANNEL_COUNT 11
 
 /**
  * Defines the mapping of the logical digital channels to the physical digital peripheral.
  * Count of channels MUST be equal to DIGITAL_CHANNEL_COUNT.
  */
-#define DIGITAL_MAP_PERIPHERAL { GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOB, GPIOC, GPIOC }
+#define DIGITAL_MAP_PERIPHERAL { GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOA, GPIOB, GPIOB, GPIOC }
 
 /**
  * Defines the mapping of the logical digital channels to the physical digital channel.
  * Count of channels MUST be equal to DIGITAL_CHANNEL_COUNT.
  */
-#define DIGITAL_MAP_CHANNEL { GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_0, GPIO_PIN_13, GPIO_PIN_14 }
+#define DIGITAL_MAP_CHANNEL { GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3, GPIO_PIN_4, GPIO_PIN_5, GPIO_PIN_6, GPIO_PIN_7, GPIO_PIN_8, GPIO_PIN_9, GPIO_PIN_13 }
 
-#define DIGITAL_PA1 0
-#define DIGITAL_PA2 1
-#define DIGITAL_PA3 2
-#define DIGITAL_PA4 3
-#define DIGITAL_PA5 4
-#define DIGITAL_PA6 5
-#define DIGITAL_PA7 6
-#define DIGITAL_PB0 7
-#define DIGITAL_PC13 8
-#define DIGITAL_PC14 9
+#define DIGITAL_PA0 0
+#define DIGITAL_PA1 1
+#define DIGITAL_PA2 2
+#define DIGITAL_PA3 3
+#define DIGITAL_PA4 4
+#define DIGITAL_PA5 5
+#define DIGITAL_PA6 6
+#define DIGITAL_PA7 7
+#define DIGITAL_PB8 8
+#define DIGITAL_PB9 9
+#define DIGITAL_PC13 10
 
-#define MOTOR_FLAP_CLOSE 	DIGITAL_PA1
-#define MOTOR_FLAP_OPEN 	DIGITAL_PA2
-#define BUTTON_MENU_BACK 	DIGITAL_PA3
-#define BUTTON_MENU_ENTER	DIGITAL_PA4
-#define BUTTON_LEFT 		DIGITAL_PA5
-#define BUTTON_RIGHT 		DIGITAL_PA6
-#define BUTTON_FLAP_CTRL 	DIGITAL_PA7
-#define DISPLAY_ENABLE		DIGITAL_PB0
-#define DEBUG_LED 			DIGITAL_PC13
-#define ERROR_LED			DIGITAL_PC14
+#define BUTTON_FLAP_CTRL 	DIGITAL_PA0
+#define BUTTON_MENU_ENTER 	DIGITAL_PA1
+#define BUTTON_RIGHT		DIGITAL_PA2
+#define BUTTON_LEFT			DIGITAL_PA3
+#define DISPLAY_ENABLE		DIGITAL_PA4
+#define BUTTON_MENU_BACK	DIGITAL_PA5
+#define	BUTTON_NOT_USED		DIGITAL_PA6
+#define ERROR_LED			DIGITAL_PA7
+#define MOTOR_FLAP_OPEN		DIGITAL_PB8
+#define MOTOR_FLAP_CLOSE	DIGITAL_PB9
+#define	DEBUG_LED			DIGITAL_PC13
 
 #define DIGITAL_IO_SPEED GPIO_SPEED_FREQ_HIGH
 
 // UART
-#define UART_COUNT 0
+#define UART_COUNT 1
+#define UART_MAP { &huart1 }
+
+#define UART_LOG 0
 
 // SPI
 #define SPI_COUNT 0

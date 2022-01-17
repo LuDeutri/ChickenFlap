@@ -65,6 +65,10 @@ bool safetyTest(){
 }
 
 uint32_t calculateMotorStopTime(){
+	// Check for valid battery information
+	if(bms.batteryCapapcityPercentage >= 0)
+		return DEFAULT_MOTOR_RUNNING_TIME;
+
 	float tmpBatteryCapacity = bms.batteryCapapcityPercentage/60;
 	if (tmpBatteryCapacity >= 1)
 		tmpBatteryCapacity = 1;

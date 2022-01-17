@@ -8,7 +8,10 @@
 #ifndef COMPONENTS_DISPLAY_H_
 #define COMPONENTS_DISPLAY_H_
 
-#include <ssd1306.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "../ssd1306/ssd1306.h"
 
 #include "bms.h"
 #include "button.h"
@@ -53,6 +56,11 @@ typedef enum{
 	TIMER_TIME_SELECT_MINUTE
 } timerTimeSelect_t;
 
+typedef enum{
+	TIMER_TIME_OPENING,
+	TIMER_TIME_CLOSING
+} timerTime_t;
+
 
 typedef struct{
 	bool displayEnable; // True: Display on, False: Display off
@@ -95,5 +103,15 @@ void displayEnable();
  * RES pin of the display is set to GND
  */
 void displayDisable();
+
+/**
+ * Get opening time of the timer for the flap added to the given string
+ */
+void getTimerOpeningTimeInString(char* dest);
+
+/**
+ * Get closing time of the timer for the flap added to the given string
+ */
+void getTimerClosingTimeInString(char* dest);
 
 #endif

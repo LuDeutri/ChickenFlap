@@ -60,26 +60,28 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define DEBUG_LED_Pin GPIO_PIN_13
 #define DEBUG_LED_GPIO_Port GPIOC
-#define ERROR_LED_Pin GPIO_PIN_14
-#define ERROR_LED_GPIO_Port GPIOC
-#define Battery_voltage_Pin GPIO_PIN_0
-#define Battery_voltage_GPIO_Port GPIOA
-#define motor_close_clap_Pin GPIO_PIN_1
-#define motor_close_clap_GPIO_Port GPIOA
-#define motor_open_clap_Pin GPIO_PIN_2
-#define motor_open_clap_GPIO_Port GPIOA
-#define Button_menu_back_Pin GPIO_PIN_3
-#define Button_menu_back_GPIO_Port GPIOA
-#define Button_menu_enter_Pin GPIO_PIN_4
-#define Button_menu_enter_GPIO_Port GPIOA
-#define Button_left_Pin GPIO_PIN_5
-#define Button_left_GPIO_Port GPIOA
-#define Button_right_Pin GPIO_PIN_6
-#define Button_right_GPIO_Port GPIOA
-#define Button_Flap_Ctrl_Pin GPIO_PIN_7
+#define Button_Flap_Ctrl_Pin GPIO_PIN_0
 #define Button_Flap_Ctrl_GPIO_Port GPIOA
-#define Display_enable_Pin GPIO_PIN_0
-#define Display_enable_GPIO_Port GPIOB
+#define Button_menu_enter_Pin GPIO_PIN_1
+#define Button_menu_enter_GPIO_Port GPIOA
+#define Button_right_Pin GPIO_PIN_2
+#define Button_right_GPIO_Port GPIOA
+#define Button_left_Pin GPIO_PIN_3
+#define Button_left_GPIO_Port GPIOA
+#define Display_enable_Pin GPIO_PIN_4
+#define Display_enable_GPIO_Port GPIOA
+#define Button_back_Pin GPIO_PIN_5
+#define Button_back_GPIO_Port GPIOA
+#define Button_NOT_USED_Pin GPIO_PIN_6
+#define Button_NOT_USED_GPIO_Port GPIOA
+#define ERROR_LED_Pin GPIO_PIN_7
+#define ERROR_LED_GPIO_Port GPIOA
+#define Battery_voltage_Pin GPIO_PIN_1
+#define Battery_voltage_GPIO_Port GPIOB
+#define motor_ctrl_open_Pin GPIO_PIN_8
+#define motor_ctrl_open_GPIO_Port GPIOB
+#define motor_ctrl_close_Pin GPIO_PIN_9
+#define motor_ctrl_close_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

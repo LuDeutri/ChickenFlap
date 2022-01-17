@@ -2,16 +2,18 @@
 
 void display_init(){
 	display.displayEnable = true;
+	digitalWrite(DISPLAY_ENABLE, HIGH);
 	display.displayPage = DISPLAY_HOME;
 	display.menuSelect = MENU_SELECT_WATCH;
 	display.timerSelect = TIMER_SELECT_NONE;
 	display.timerTimeSelect = TIMER_TIME_SELECT_NONE;
 	display.watchSelect = WATCH_SELECT_NONE;
+	ssd1306_Init();
 }
 
 void display_update(){
 	// Stop if the display is disabled or not ready yet
-	if (!display.displayEnable || SSD1306_Init()<=0)
+	if (!display.displayEnable || /*TODO SSD1306_Init()<=0*/ 0)
 		return;
 
 	displayNavigation();
@@ -21,204 +23,194 @@ void display_update(){
 // TODO Sämtliche Puts auf koordinaten untersuchen und anpassen damits angezeigt wird wies soll
 
 void displayStateMachine() {
-	// Clear the hole display
-	SSD1306_Clear();
+	// Display enable
+	digitalWrite(DISPLAY_ENABLE, display.displayEnable);
+
+	// Reset diplay
+	ssd1306_Fill(Black);
 
 	//---------------- Information line at the top START----------------
 	// Timer status ( ON / OFF / ONLY OPENING / ONLY CLOSING)
-	char* tmpStrTimState = "Timer: ";
+
+	char strTimer[20] = "Timer:";
 
 	switch(timer.timerState){
 	case TIMER_ACTIVE:
-		strcat(tmpStrTimState, "ON");
+		strcat(strTimer, "ON");
 		break;
 	case TIMER_DEACTIVE:
-		strcat(tmpStrTimState, "OFF");
+		strcat(strTimer, "OFF");
 		break;
 	case TIMER_ONLY_OPEN:
-		strcat(tmpStrTimState, "ONLY OPENING");
+		strcat(strTimer, "ONLY OPENING");
 		break;
 	case TIMER_ONLY_CLOSE:
-		strcat(tmpStrTimState, "ONLY CLOSING");
+		strcat(strTimer, "ONLY CLOSING");
 		break;
 	default:
-		strcat(tmpStrTimState, "---");
+		strcat(strTimer, "---");
 		break;
 	}
-	SSD1306_GotoXY(5,5);
-	SSD1306_Puts(tmpStrTimState, &Font_7x10, 1);
+	ssd1306_SetCursor(0,0);
+	ssd1306_WriteString(strTimer, Font_6x8, White);
+
+	// Battery capacity
+	char strBatValue[10] = "";
+	bms.batteryCapapcityPercentage = 100; // TODO
+	sprintf(strBatValue,"%d", bms.batteryCapapcityPercentage);
+	strcat(strBatValue, "%");
+
+	ssd1306_SetCursor(104,0);
+	ssd1306_WriteString(strBatValue, Font_6x8, White);
+
+	char strTimerTime[50] = "";
+
+	// If only opening function of the timer is active
+	if(timer.timerState == TIMER_ONLY_OPEN){
+		strcat(strTimerTime, "(");
+		getTimerOpeningTimeInString(strTimerTime);
+		strcat(strTimerTime, ")");
+	}
+
+	// If opening and closing functions are active
+	if(timer.timerState == TIMER_ACTIVE){
+		strcat(strTimerTime, "(");
+		getTimerOpeningTimeInString(strTimerTime);
+		strcat(strTimerTime, "|");
+		getTimerClosingTimeInString(strTimerTime);
+		strcat(strTimerTime, ")");
+	}
+
+	// If only closing function of the timer is active
+	if(timer.timerState == TIMER_ONLY_CLOSE){
+		strcat(strTimerTime,"(");
+		getTimerClosingTimeInString(strTimerTime);
+		strcat(strTimerTime, ")");
+	}
+
+	ssd1306_SetCursor(0,9);
+	ssd1306_WriteString(strTimerTime, Font_6x8, White);
 
 	// Flap status (OPENED / CLOSED / OPENING / CLOSING)
-	char* tmpStrFlapState = "Flap: ";
+	char strFlap[15] = "Flap :";
 
 	switch(stateMachine.state){
 	case STATE_FLAP_OPEN:
 		if(flap.motorIsRuning)
-			strcat(tmpStrFlapState, "OPENING");
+			strcat(strFlap, "OPENING");
 		else
-			strcat(tmpStrFlapState, "OPENED");
+			strcat(strFlap, "OPENED");
 		break;
 	case STATE_FLAP_CLOSE:
 		if(flap.motorIsRuning)
-			strcat(tmpStrFlapState, "CLOSING");
+			strcat(strFlap, "CLOSING");
 		else
-			strcat(tmpStrFlapState, "CLOSED");
+			strcat(strFlap, "CLOSED");
 		break;
 	default:
-		strcat(tmpStrFlapState, "---");
+		strcat(strFlap, "---");
 		break;
 	}
-	if(flap.motorIsRuning && millis() % 1000 > 500){ // Blinks if motor is running
-		SSD1306_GotoXY(5,10);
-		SSD1306_Puts(tmpStrFlapState, &Font_7x10, 1);
-	}
+	ssd1306_SetCursor(0,18);
 
-	// Battery capacity
-	char* tmpStrBatCapacity = "";
-	sprintf(tmpStrBatCapacity," %d", bms.batteryCapapcityPercentage);
-	char* tmpStrPercent = " %";
-	strcat(tmpStrBatCapacity, tmpStrPercent);
-
-	SSD1306_GotoXY(100,5);
-	SSD1306_Puts(tmpStrBatCapacity, &Font_7x10, 1);
+	if(flap.motorIsRuning){
+		if(millis() % 1000 > 500){ // Blinks if motor is running
+			ssd1306_WriteString(strFlap, Font_6x8, White);
+		}
+	} else
+		ssd1306_WriteString(strFlap, Font_6x8, White);
 
 	// Show cut line
-	SSD1306_DrawLine(0,20,127,22,SSD1306_COLOR_WHITE);
+	ssd1306_Line(0,27,127,27,White);
 
 	//---------------- Information line at the top END----------------
 
-	//------------------- Timer Information START -------------------
-
-	char* tmpStrFlapTime = "";
-
-	// If opening function of the timer is active, show opening time
-	if(timer.timerState == TIMER_ONLY_OPEN){
-		char tmpStrFlapOpenTime[20];
-		sprintf(tmpStrFlapOpenTime, "open: %d %d : %d %d",
-			timer.openFlapTime_Dec_H,
-			timer.openFlapTime_One_H,
-			timer.openFlapTime_Dec_M,
-			timer.openFlapTime_One_M
-		);
-		strcat(tmpStrFlapTime, tmpStrPercent);
-	}
-
-	// If opening and closing function are active, show cut line between them
-	if(timer.timerState == TIMER_ACTIVE){
-		char* tmpStrTimFlapActive = "|";
-		strcat(tmpStrFlapTime, tmpStrTimFlapActive);
-	}
-
-	// If closing function of the timer is active, show closing time
-	if(timer.timerState == TIMER_ONLY_CLOSE){
-		char tmpStrTimFlapClose[20];
-		sprintf(tmpStrTimFlapClose, "close: %d %d : %d %d",
-			timer.closeFlapTime_Dec_H,
-			timer.closeFlapTime_One_H,
-			timer.closeFlapTime_Dec_M,
-			timer.closeFlapTime_One_M
-		);
-		strcat(tmpStrFlapTime, tmpStrTimFlapClose);
-	}
-
-	SSD1306_GotoXY(5,10);
-	SSD1306_Puts(tmpStrFlapTime, &Font_7x10, 1);
-
-	//------------------- Timer Information END -------------------
+/*
+	// Variables used in the switch block
 
 	char tmpStrDisplayTimer[20];
 
-	char tmpStrWatch[15];
-	sprintf(tmpStrWatch,"%d %d  :  %d %d",
+	char strWatchTime[10] ="";
+	sprintf(strWatchTime,"%d%d:%d%d",
 		watch.watchDecHour,
 		watch.watchOneHour,
 		watch.watchDecMinute,
 		watch.watchOneMinute
 	);
 
-	char tmpStrOpeningTime[20];
-	sprintf(tmpStrOpeningTime,"%d %d  :  %d %d",
-		timer.openFlapTime_Dec_H,
-		timer.openFlapTime_One_H,
-		timer.openFlapTime_Dec_M,
-		timer.openFlapTime_One_M
-	);
+	char strTimerOpenTime[5] = "";
+	getTimerOpeningTimeInString(strTimerOpenTime);
 
-	char tmpStrClosingTime[20];
-	sprintf(tmpStrClosingTime,"%d %d  :  %d %d",
-		timer.closeFlapTime_Dec_H,
-		timer.closeFlapTime_One_H,
-		timer.closeFlapTime_Dec_M,
-		timer.closeFlapTime_One_M
-	);
+	char strTimerClosingTime[5];
+	getTimerClosingTimeInString(strTimerClosingTime);
 
 	// Display navigation blocks
-	char* tmpStrMenuWatch = "Watch";
-	char* tmpStrMenuTimer = "Timer";
-	char* tmpStrMenuEnter = "Enter";
-	char* tmpStrMenuBack = "Back";
+	char tmpStrMenuWatch[5] = "Watch";
+	char tmpStrMenuTimer[5] = "Timer";
+	char tmpStrMenuEnter[5] = "Enter";
+	char tmpStrMenuBack[4] = "Back";
 
 	switch(DISPLAY_HOME) {
 	case DISPLAY_HOME:
 		//------------------------- Watch START -------------------------
-		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrWatch, &Font_7x10, 1);
+		ssd1306_SetCursor(30,30);
+		ssd1306_WriteString(strWatchTime, Font_6x8, White);
 		//------------------------- Watch END -------------------------
 
 		//--------------------- Menu block START ---------------------
-		SSD1306_GotoXY(100,52);
-		SSD1306_Puts("Menu", &Font_7x10, 1);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
+		ssd1306_DrawRectangle(101, 52, 127, 63, White);
+		ssd1306_SetCursor(103,55);
+		ssd1306_WriteString("Menu", Font_6x8, White);
 		//---------------------- Menu block END ----------------------
 		break;
 	case DISPLAY_MENU:
 		//---------------------- Menu view START ----------------------
 		// Selection Rectangle
 		if (display.menuSelect == MENU_SELECT_WATCH) {
-			SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(90, 50, 20, 20, White);
+			ssd1306_DrawRectangle(90, 50, 20, 20, Black);
 		} else if (display.menuSelect == MENU_SELECT_TIMER) {
-			SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(90, 50, 20, 20, White);
+			ssd1306_DrawRectangle(90, 50, 20, 20, Black);
 		}
 
 		// Watch Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(30,30);
-		SSD1306_Puts(tmpStrMenuWatch, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(30,30);
+		ssd1306_WriteString(tmpStrMenuWatch, Font_6x8, 1);
 
 		// Timer Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(80,30);
-		SSD1306_Puts(tmpStrMenuTimer, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(80,30);
+		ssd1306_WriteString(tmpStrMenuTimer, Font_6x8, 1);
 
 		// Back Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(30,55);
-		SSD1306_Puts(tmpStrMenuBack, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(30,55);
+		ssd1306_WriteString(tmpStrMenuBack, Font_6x8, 1);
 
 		// Enter Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(80,55);
-		SSD1306_Puts(tmpStrMenuEnter, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(80,55);
+		ssd1306_WriteString(tmpStrMenuEnter, Font_6x8, 1);
 		//----------------------- Menu view END -----------------------
 		break;
 	case DISPLAY_WATCH:
 		if(millis() % 2000 > 1000 && display.watchSelect > WATCH_SELECT_NONE) // Blink if digits are setting
 			break;
 
-		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrWatch, &Font_7x10, 1);
+		ssd1306_SetCursor(30,40);
+		ssd1306_WriteString(strWatchTime, Font_6x8, 1);
 
 		// Enter Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(80,55);
-		SSD1306_Puts(tmpStrMenuEnter, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(80,55);
+		ssd1306_WriteString(tmpStrMenuEnter, Font_6x8, 1);
 
 		break;
 	case DISPLAY_TIMER:
@@ -229,114 +221,116 @@ void displayStateMachine() {
 			// Nothing marked
 			break;
 		case TIMER_SELECT_OPENING_ACTIVATE:
-			SSD1306_DrawRectangle(8, 30, 15, 31, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(9, 29, 14, 30, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(8, 30, 15, 31, White);
+			ssd1306_DrawRectangle(9, 29, 14, 30, Black);
 			break;
 		case TIMER_SELECT_OPENING_DEACTIVATE:
-			SSD1306_DrawRectangle(48, 30, 15, 32, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(49, 29, 14, 31, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(48, 30, 15, 32, White);
+			ssd1306_DrawRectangle(49, 29, 14, 31, Black);
 			break;
 		case TIMER_SELECT_OPENING_SET_TIME:
-			SSD1306_DrawRectangle(88, 30, 15, 32, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(89, 29, 14, 31, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(88, 30, 15, 32, White);
+			ssd1306_DrawRectangle(89, 29, 14, 31, Black);
 			break;
 		case TIMER_SELECT_CLOSING_ACTIVATE:
-			SSD1306_DrawRectangle(8, 40, 15, 31, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(9, 39, 14, 30, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(8, 40, 15, 31, White);
+			ssd1306_DrawRectangle(9, 39, 14, 30, Black);
 			break;
 		case TIMER_SELECT_CLOSING_DEACTIVATE:
-			SSD1306_DrawRectangle(48, 40, 15, 32, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(49, 39, 14, 31, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(48, 40, 15, 32, White);
+			ssd1306_DrawRectangle(49, 39, 14, 31, Black);
 			break;
 		case TIMER_SELECT_CLOSING_SET_TIME:
-			SSD1306_DrawRectangle(88, 40, 15, 32, SSD1306_COLOR_WHITE);
-			SSD1306_DrawRectangle(89, 39, 14, 31, SSD1306_COLOR_BLACK);
+			ssd1306_DrawRectangle(88, 40, 15, 32, White);
+			ssd1306_DrawRectangle(89, 39, 14, 31, Black);
 			break;
 		default:
 			// Do nothing
 			break;
 		}
-
+	}
+/*
 		//--------------------- OPENING Configurations ---------------------
 		strcpy(tmpStrDisplayTimer, "Opening:");
-		SSD1306_GotoXY(5,30);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(5,30);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Activate Block
-		SSD1306_DrawRectangle(10, 30, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(11, 29, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(10, 30, 15, 30, White);
+		ssd1306_DrawRectangle(11, 29, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Activate");
-		SSD1306_GotoXY(13,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(13,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Dectivate Block
-		SSD1306_DrawRectangle(50, 30, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(51, 29, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(50, 30, 15, 30, White);
+		ssd1306_DrawRectangle(51, 29, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Deactivate");
-		SSD1306_GotoXY(53,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(53,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Time set Block
-		SSD1306_DrawRectangle(90, 30, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(91, 29, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(90, 30, 15, 30, White);
+		ssd1306_DrawRectangle(91, 29, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Set Time");
-		SSD1306_GotoXY(93,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(93,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 
 		//--------------------- CLOSING Configurations ---------------------
 		strcpy(tmpStrDisplayTimer, "Closing:");
-		SSD1306_GotoXY(5,40);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(5,40);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Activate Block
-		SSD1306_DrawRectangle(10, 40, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(11, 39, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(10, 40, 15, 30, White);
+		ssd1306_DrawRectangle(11, 39, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Activate");
-		SSD1306_GotoXY(13,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(13,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Dectivate Block
-		SSD1306_DrawRectangle(50, 40, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(51, 39, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(50, 40, 15, 30, White);
+		ssd1306_DrawRectangle(51, 39, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Deactivate");
-		SSD1306_GotoXY(53,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(53,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 		// Time set Block
-		SSD1306_DrawRectangle(90, 40, 15, 30, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(91, 39, 14, 29, SSD1306_COLOR_BLACK);
+		ssd1306_DrawRectangle(90, 40, 15, 30, White);
+		ssd1306_DrawRectangle(91, 39, 14, 29, Black);
 		strcpy(tmpStrDisplayTimer, "Set Time");
-		SSD1306_GotoXY(93,35);
-		SSD1306_Puts(tmpStrDisplayTimer, &Font_7x10, 1);
+		ssd1306_SetCursor(93,35);
+		ssd1306_WriteString(tmpStrDisplayTimer, Font_6x8, 1);
 
 
 		// Enter Block
-		SSD1306_DrawRectangle(110, 55, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(111, 56, 19, 19, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(115,60);
-		SSD1306_Puts(tmpStrMenuEnter, &Font_7x10, 1);
+		ssd1306_DrawRectangle(110, 55, 20, 20, White);
+		ssd1306_DrawRectangle(111, 56, 19, 19, Black);
+		ssd1306_SetCursor(115,60);
+		ssd1306_WriteString(tmpStrMenuEnter, Font_6x8, 1);
 
 		// Back Block
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_WHITE);
-		SSD1306_DrawRectangle(90, 50, 20, 20, SSD1306_COLOR_BLACK);
-		SSD1306_GotoXY(80,55);
-		SSD1306_Puts(tmpStrMenuBack, &Font_7x10, 1);
+		ssd1306_DrawRectangle(90, 50, 20, 20, White);
+		ssd1306_DrawRectangle(90, 50, 20, 20, Black);
+		ssd1306_SetCursor(80,55);
+		ssd1306_WriteString(tmpStrMenuBack, Font_6x8, 1);
 		break;
 	case DISPLAY_TIMER_OPENING:
-		SSD1306_GotoXY(70,40);
-		SSD1306_Puts(tmpStrOpeningTime, &Font_7x10, 1);
+		ssd1306_SetCursor(70,40);
+		ssd1306_WriteString(strTimerOpenTime, Font_6x8, 1);
 		break;
 	case DISPLAY_TIMER_CLOSING:
-		SSD1306_GotoXY(30,40);
-		SSD1306_Puts(tmpStrClosingTime, &Font_7x10, 1);
+		ssd1306_SetCursor(30,40);
+		ssd1306_WriteString(strTimerClosingTime, Font_6x8, 1);
 		break;
 	default:
 		// Do nothing
 		break;
 	}
+*/
 	// Sends new data to the display
-	SSD1306_UpdateScreen();
+	ssd1306_UpdateScreen();
 }
 
 void displayNavigation(){
@@ -815,4 +809,26 @@ void displayEnable(){
 
 void displayDisable(){
 	digitalWrite(DISPLAY_ENABLE, LOW);
+}
+
+void getTimerOpeningTimeInString(char* dest){
+	char tmp[6];
+	sprintf(tmp, "%d%d:%d%d",
+		timer.openFlapTime_Dec_H,
+		timer.openFlapTime_One_H,
+		timer.openFlapTime_Dec_M,
+		timer.openFlapTime_One_M
+	);
+	strcat(dest,tmp);
+}
+
+void getTimerClosingTimeInString(char* dest){
+	char tmp[6];
+	sprintf(tmp, "%d%d:%d%d",
+		timer.closeFlapTime_Dec_H,
+		timer.closeFlapTime_One_H,
+		timer.closeFlapTime_Dec_M,
+		timer.closeFlapTime_One_M
+	);
+	strcat(dest,tmp);
 }

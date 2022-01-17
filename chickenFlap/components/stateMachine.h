@@ -1,8 +1,6 @@
 #ifndef STATEMACHINE_H_
 #define STATEMACHINE_H_
 
-#include <ssd1306.h>
-
 #include "bms.h"
 #include "config.h"
 #include "display.h"
@@ -15,7 +13,6 @@
 // States State machine
 typedef enum{
 	STATE_INIT,
-	STATE_BOOTING,
 	STATE_FLAP_CLOSE,
 	STATE_FLAP_OPEN,
 	STATE_SLEEP,

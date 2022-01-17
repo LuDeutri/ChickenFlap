@@ -6,10 +6,10 @@ void timer_init(){
 	timer.openFlapTime_One_H = DEFAULT_OPEN_FLAP_TIME_ONE_H;
 	timer.openFlapTime_Dec_M = DEFAULT_OPEN_FLAP_TIME_DEC_MIN;
 	timer.openFlapTime_One_M = DEFAULT_OPEN_FLAP_TIME_ONE_MIN;
-	timer.openFlapTime_Dec_H = DEFAULT_CLOSE_FLAP_TIME_DEC_H;
-	timer.openFlapTime_One_H = DEFAULT_CLOSE_FLAP_TIME_ONE_H;
-	timer.openFlapTime_Dec_M = DEFAULT_CLOSE_FLAP_TIME_DEC_MIN;
-	timer.openFlapTime_One_M = DEFAULT_CLOSE_FLAP_TIME_ONE_MIN;
+	timer.closeFlapTime_Dec_H = DEFAULT_CLOSE_FLAP_TIME_DEC_H;
+	timer.closeFlapTime_One_H = DEFAULT_CLOSE_FLAP_TIME_ONE_H;
+	timer.closeFlapTime_Dec_M = DEFAULT_CLOSE_FLAP_TIME_DEC_MIN;
+	timer.closeFlapTime_One_M = DEFAULT_CLOSE_FLAP_TIME_ONE_MIN;
 
 	timer.timerState = TIMER_ACTIVE;
 }
