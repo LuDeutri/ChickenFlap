@@ -26,13 +26,27 @@ typedef enum{
 	DISPLAY_WATCH,
 	DISPLAY_TIMER,
 	DISPLAY_TIMER_CLOSING,
-	DISPLAY_TIMER_OPENING
+	DISPLAY_TIMER_OPENING,
+	DISPLAY_CONFIG,
+	DISPLAY_CONFIG_IN_USE,
+	DISPLAY_CONFIG_ADJUST_TIME
 } displayPage_t;
 
 typedef enum{
 	MENU_SELECT_WATCH,
-	MENU_SELECT_TIMER
+	MENU_SELECT_TIMER,
+	MENU_SELECT_CONFIG
 } menuSelect_t;
+
+typedef enum{
+	CONFIG_SELECT_IN_USE,
+	CONFIG_SELECT_ADJUST_TIME
+} configSelect_t;
+
+typedef enum{
+	ADJUST_TIME_SELECT_NONE,
+	ADJUST_TIME_SELECT_SECONDS
+} adjustTimeSelect_t;
 
 typedef enum{
 	WATCH_SELECT_NONE,
@@ -63,12 +77,14 @@ typedef enum{
 
 
 typedef struct{
-	bool displayEnable; // True: Display on, False: Display off
-	uint8_t displayPage; // Value can use from enum displayPage_t
-	uint8_t menuSelect;
-	uint8_t watchSelect;
-	uint8_t timerSelect;
-	uint8_t timerTimeSelect;
+	bool displayEnable; 	// True: Display on, False: Display off
+	uint8_t displayPage; 	// Enum: displayPage_t
+	uint8_t menuSelect;		// Enum: menuSelect_t
+	uint8_t watchSelect;	// Enum: watchSelect_t
+	uint8_t timerSelect;	// Enum: timerSelect_t
+	uint8_t timerTimeSelect;	// Enum: timerTimeSelect_t
+	uint8_t configSelect;		// Enum: configSelect_t
+	uint8_t adjustTimeSelect;	// Enum: adjustTimeSelect_t
 } display_t;
 display_t display;
 
@@ -109,9 +125,7 @@ void displayDisable();
  */
 void getTimerOpeningTimeInString(char* dest);
 
-/**
- * Get closing time of the timer for the flap added to the given string
- */
-void getTimerClosingTimeInString(char* dest);
+void addBlockDownRight(char* string);
+void addBlockDownLeft(char* string);
 
 #endif

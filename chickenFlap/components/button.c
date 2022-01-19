@@ -12,7 +12,7 @@ void button_init(){
 }
 
 void button_update(){
-	buttonPing();
+	buttonPingReset();
 	readButtonState();
 	setButtonTime();
 	buttonFlapCtrl();
@@ -35,48 +35,83 @@ void readButtonState(){
 	button.buttonRight = !digitalRead(BUTTON_RIGHT);
 	if(button.buttonRight)
 		return;
+	button.buttonJoker = !digitalRead(BUTTON_JOKER);
+	if(button.buttonJoker)
+		return;
 }
 
 void setButtonTime(){
 	// Set starting time if one button is pressed
 	// Pushing one button in the sleepmode will not registry as button pressing. Its only to wakeup from sleep mode.
-	if (button.firstTimeButtonPressed == 0 && stateMachine.state != STATE_SLEEP &&
-			(  !button.buttonMenuEnter
-			|| !button.buttonMenuBack
-			|| !button.buttonLeft
-			|| !button.buttonRight
-			|| !button.buttonFlapCtrl)) {
+	if (button.firstTimeButtonPressed == 0 && stateMachine.state != STATE_SLEEP && (
+			   button.buttonMenuEnter
+			|| button.buttonMenuBack
+			|| button.buttonLeft
+			|| button.buttonRight
+			|| button.buttonFlapCtrl))
+	{
 		button.firstTimeButtonPressed = button.lastTimeButtonPressed = millis();
 		button.onePingIfButtonPressed = true;
-	} else
-		button.firstTimeButtonPressed = 0;
+	}
 }
 
 void buttonFlapCtrl(){
-	// Stop if button is not pressed
-	if(button.buttonFlapCtrl == LOW)
+	// Return if button is not pressed
+	if(button.buttonFlapCtrl == LOW || !button.onePingIfButtonPressed)
 		return;
 
 	// Pushing the button in the sleepmode will not registry as button pressing. Its only to wakeup from sleep mode.
 	if (stateMachine.state == STATE_SLEEP)
 		return;
 
+	// Ignore the stop button if the flap is in reverse direction after an middle break up
+	if (flap.motorButtonCtrlTime > 0 && flap.motorIsRuning)
+		return;
+
 	// Stopping the flap when the motor is already running
-	if (flap.motorIsRuning)
-		stopMotor();
+	if(flap.motorButtonCtrlTime == 0 && flap.motorIsRuning){
+		if(flap.motorOperationTimeSetted){
+			// Safe actual flap motion state
+			flap.motorWaitForButton = true;
+			// Safe motor active duration for the reserve movement
+			flap.motorButtonCtrlTime = flap.motorRunningTime;
+			// Stop motor
+			stopMotor();
+			// Reset motorCtrl state
+			flap.motorIsRuning = false;
+		} else {
+			// Motor action time is set
+			flap.motorOperationTimeSetted = true;
+			// Stop motor
+			stopMotor();
+		}
+	}
+	// Start the motor if the button is pressed
+	else {
+		// Enable motor movement
+		flap.motorWaitForButton = false;
 
-	// Open flap if closed
-	else if(flap.actuallyStateFlap == FLAP_CLOSED)
-		nextState(STATE_FLAP_OPEN);
-
-	// Close flap if opened
-	else if (flap.actuallyStateFlap == FLAP_OPENED)
-		nextState(STATE_FLAP_CLOSE);
+		switch(flap.actuallyStateFlap){
+		case FLAP_OPENED:
+			nextState(STATE_FLAP_CLOSE);
+			break;
+		case FLAP_OPENING:
+			nextState(STATE_FLAP_CLOSE);
+			break;
+		case FLAP_CLOSING:
+			nextState(STATE_FLAP_OPEN);
+			break;
+		case FLAP_CLOSED:
+			nextState(STATE_FLAP_OPEN);
+			break;
+		default:
+			break;
+		}
+	}
 }
 
-void buttonPing(){
-	if (button.onePingIfButtonPressed)
-		button.onePingIfButtonPressed = false;
+void buttonPingReset(){
+	button.onePingIfButtonPressed = false;
 }
 
 bool anyButtonPushed(){

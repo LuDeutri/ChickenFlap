@@ -26,6 +26,7 @@ typedef struct{
 	bool buttonLeft; // not the position, its the function (its acutally on the left side of the display)
 	bool buttonRight; // not the position, its the function (its acutally on the rigth side of the display)
 	bool buttonFlapCtrl;
+	bool buttonJoker; // not used
 } button_t;
 button_t button;
 
@@ -55,7 +56,7 @@ void buttonFlapCtrl();
  * On this way a pressed Button will be valid for one code runtime.
  * Only until the buttons were unpressed, die ping can go again true for one code runtime.
  */
-void buttonPing();
+void buttonPingReset();
 
 /*
  * True if any button is pushed. Otherwise false

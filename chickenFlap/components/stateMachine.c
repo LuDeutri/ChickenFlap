@@ -51,11 +51,12 @@ void stateMachine_update(){
 	case STATE_ERROR:
 		// Close the flap
 		flap.targetStateFlap = STATE_FLAP_CLOSE;
-		if (flap.actuallyStateFlap == FLAP_OPENED)
+		if (flap.actuallyStateFlap < FLAP_CLOSED)
 			closeFlap();
 		// Stay in the error state
 		break;
 	default:
+		error.stateMachine = true;
 		nextState(STATE_ERROR);
 		break;
 	}

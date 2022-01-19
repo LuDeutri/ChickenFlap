@@ -10,12 +10,26 @@
 
 #include "config.h"
 #include "stateMachine.h"
+#include "error.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
+typedef enum{
+	FLAP_OPENED,
+	FLAP_OPENING,
+	FLAP_CLOSING,
+	FLAP_CLOSED
+} flapState_t;
+
 typedef struct{
-	bool actuallyStateFlap;
-	bool targetStateFlap;
+	uint8_t actuallyStateFlap; // Use the enum flapState_t
+	uint8_t targetStateFlap;	// Use the enum flapState_t
+	bool motorEnable;			// False in error case
 	bool motorIsRuning;
+	util_time_t motorRunningTime;	// Time which the motor is active
+	util_time_t motorOperationTime; // Safed duration to open / close the flap
+	bool motorOperationTimeSetted;
+	util_time_t motorButtonCtrlTime; // If the flap motion stoppped, the running time is safed here, to ensure that the same running time is used in the other direction
+	bool motorWaitForButton; 		// Used if the motor is stoped by the button Flap_CTRL
 } flap_t;
 flap_t flap;
 
@@ -62,6 +76,8 @@ bool safetyTest();
  *Calculate the stoping time of the motor, depending on the given distance of the flap, the battery voltage and the max. motor speed
  *@return Time on which the motor should stops
  */
-uint32_t calculateMotorStopTime();
+uint32_t calculateMotorStopTimeWithBatCap();
+
+void measureMotorOperationTime();
 
 #endif
