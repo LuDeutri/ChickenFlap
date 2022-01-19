@@ -22,6 +22,7 @@ void chickenFlap_init(){
 	stateMachine_init();
 	timer_init();
 	watch_init();
+	error_init();
 }
 
 void chickenFlap_update(){
@@ -31,8 +32,6 @@ void chickenFlap_update(){
 	dartUART_update();
 	dartI2C_update();
 
-	i2cTest();
-
 	stateMachine_update();
 	if (stateMachine.state> STATE_INIT) {
 		bms_update();
@@ -40,6 +39,7 @@ void chickenFlap_update(){
 		button_update();
 		stateMachine_update();
 		display_update();
+		error_update();
 	}
 }
 

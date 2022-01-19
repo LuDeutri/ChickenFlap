@@ -29,6 +29,7 @@
 #include "components/stateMachine.h"
 #include "components/timer.h"
 #include "components/watch.h"
+#include "components/error.h"
 
 /*
  * Main function
