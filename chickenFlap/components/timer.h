@@ -21,6 +21,7 @@ typedef enum {
 
 typedef struct{
 	timerState_t timerState;
+	bool timerActionRunning; // True if motor open / close if the timer time is reached
 
 	// Time when the flap should close
 	uint8_t openFlapTime_Dec_H;
@@ -50,6 +51,10 @@ bool checkIfTimeToClose();
  */
 bool checkIfTimeToOpen();
 
+/*
+ * Switch to the next timer state.
+ * @param timer state to switch, use the enum timerState_t
+ */
 void nextTimerState(timerState_t nextTimerState);
 
 

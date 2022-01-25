@@ -47,6 +47,18 @@ void stateMachine_update(){
 			displayEnable();
 			nextState(stateMachine.lastState);
 		}
+
+		// Timer opening
+		if (checkIfTimeToOpen()){
+			displayEnable();
+			nextState(STATE_FLAP_OPEN);
+		}
+
+		// Timer closing
+		if (checkIfTimeToClose()){
+			displayEnable();
+			nextState(STATE_FLAP_CLOSE);
+		}
 		break;
 	case STATE_ERROR:
 		// Close the flap
@@ -86,12 +98,18 @@ void nextState(state_t nextState){
 		return;
 
 	dartUART_formatLine(UART_LOG, "[%d ms] state change: %d -> %d", millis(), stateMachine.state, (int)nextState);
-	stateMachine.lastState = stateMachine.state;
+	if (stateMachine.state != STATE_SLEEP)
+		stateMachine.lastState = stateMachine.state;
 	stateMachine.state = nextState;
 	stateMachine.firstTimeInState = millis();
 }
 
 void checkActivity(){
-	if (millis() > button.lastTimeButtonPressed + TIME_TO_SLEEP_MODE)
+	if (stateMachine.state == STATE_SLEEP)
+		return;
+	if(anyButtonPushed() || timer.timerActionRunning)
+		return;
+
+	if (millis() > button.lastTimeButtonPressed + TIMEOUT_SLEEP_MODE)
 		nextState(STATE_SLEEP);
 }

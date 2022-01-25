@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "statemachine.h"
+#include "flap.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
 typedef struct{
@@ -28,6 +29,10 @@ static const uint16_t batteryCapacity[22] = {
 	0xB15U, 0xB54U					//0.55V, 0.5V
 	};
 
+// Loop values used to calculate an averaged battery capacity value
+uint8_t loopRound;
+uint32_t tmpSum;
+
 void bms_init();
 void bms_update();
 
@@ -45,6 +50,8 @@ void readBatteryVoltage();
 void getBatteryCapacityInPercentage();
 
 /*
+ * ------------Actually not used--------------
+ *
  * Round given value for the lookUpTable
  * @param values about 1800 or below 500 will result in an error. The return would be 0.
  */

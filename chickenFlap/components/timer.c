@@ -12,17 +12,23 @@ void timer_init(){
 	timer.closeFlapTime_One_M = DEFAULT_CLOSE_FLAP_TIME_ONE_MIN;
 
 	timer.timerState = TIMER_ACTIVE;
+	timer.timerActionRunning = false;
 }
 
 bool checkIfTimeToClose(){
 	// Do nothing / stay opened, if timer is deactivated or only used to open the flap
-	if(timer.timerState != TIMER_ONLY_CLOSE || timer.timerState != TIMER_ACTIVE)
+	if(timer.timerState != TIMER_ONLY_CLOSE && timer.timerState != TIMER_ACTIVE)
 		return false;
 
-	return  (timer.closeFlapTime_Dec_H == watch.watchDecHour
+	timer.timerActionRunning = (timer.closeFlapTime_Dec_H == watch.watchDecHour
 			&& timer.closeFlapTime_One_H == watch.watchOneHour
 			&& timer.closeFlapTime_Dec_M == watch.watchDecMinute
 			&& timer.closeFlapTime_One_M == watch.watchOneMinute);
+
+	if(timer.timerActionRunning)
+		button.lastTimeButtonPressed = millis();
+
+	return  timer.timerActionRunning;
 }
 
 bool checkIfTimeToOpen(){
@@ -30,10 +36,15 @@ bool checkIfTimeToOpen(){
 	if(timer.timerState < TIMER_ONLY_CLOSE)
 		return false;
 
-	return  (timer.openFlapTime_Dec_H == watch.watchDecHour
+	timer.timerActionRunning = (timer.openFlapTime_Dec_H == watch.watchDecHour
 			&& timer.openFlapTime_One_H == watch.watchOneHour
 			&& timer.openFlapTime_Dec_M == watch.watchDecMinute
 			&& timer.openFlapTime_One_M == watch.watchOneMinute);
+
+	if(timer.timerActionRunning)
+			button.lastTimeButtonPressed = millis();
+
+	return  timer.timerActionRunning;
 }
 
 void nextTimerState(timerState_t nextTimerState){

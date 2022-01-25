@@ -42,8 +42,7 @@ void readButtonState(){
 
 void setButtonTime(){
 	// Set starting time if one button is pressed
-	// Pushing one button in the sleepmode will not registry as button pressing. Its only to wakeup from sleep mode.
-	if (button.firstTimeButtonPressed == 0 && stateMachine.state != STATE_SLEEP && (
+	if (button.firstTimeButtonPressed == 0 && (
 			   button.buttonMenuEnter
 			|| button.buttonMenuBack
 			|| button.buttonLeft
@@ -51,7 +50,9 @@ void setButtonTime(){
 			|| button.buttonFlapCtrl))
 	{
 		button.firstTimeButtonPressed = button.lastTimeButtonPressed = millis();
-		button.onePingIfButtonPressed = true;
+		// If display off, dont set a button ping
+		if(ssd1306_GetDisplayOn() == 1)
+			button.onePingIfButtonPressed = true;
 	}
 }
 
@@ -60,9 +61,10 @@ void buttonFlapCtrl(){
 	if(button.buttonFlapCtrl == LOW || !button.onePingIfButtonPressed)
 		return;
 
-	// Pushing the button in the sleepmode will not registry as button pressing. Its only to wakeup from sleep mode.
-	if (stateMachine.state == STATE_SLEEP)
+	// Stop if timer activate the motor actually
+	if(checkIfTimeToOpen() || checkIfTimeToClose())
 		return;
+
 
 	// Ignore the stop button if the flap is in reverse direction after an middle break up
 	if (flap.motorButtonCtrlTime > 0 && flap.motorIsRuning)

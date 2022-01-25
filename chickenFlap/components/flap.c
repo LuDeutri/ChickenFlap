@@ -10,6 +10,7 @@ void flap_init(){
 	flap.motorWaitForButton = false;
 	flap.motorEnable = true;
 	flap.motorButtonCtrlTime = 0;
+	flap.lastTimeMotorRuns = 0;
 }
 
 void openFlap() {
@@ -50,7 +51,8 @@ void motorCtrl(uint8_t direction) {
 	if (!flap.motorIsRuning) {
 		motorStartingTime = millis();
 		flap.motorIsRuning = true;
-	}
+	} else
+		flap.lastTimeMotorRuns = millis();
 
 	// Start motor action
 	if(direction == FLAP_OPENING) {
@@ -68,7 +70,7 @@ void motorCtrl(uint8_t direction) {
 	measureMotorOperationTime();
 
 	// Switch to error state if the motor never stops
-	if(flap.motorRunningTime >= MAX_MOTOR_RUNNING_TIME)
+	if(flap.motorRunningTime >= TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME)
 		error.motorMaxRunningTime = true;
 
 	// If the motor motion was break in the middle, stop the reverse motion after the same time it was break up before
@@ -105,21 +107,6 @@ bool safetyTest(){
 		return true;
 	}
 	return false;
-}
-
-uint32_t calculateMotorStopTimeWithBatCap(){
-	// Check for valid battery information
-	if(bms.batteryCapapcityPercentage >= 0)
-		return DEFAULT_MOTOR_RUNNING_TIME;
-
-	float tmpBatteryCapacity = bms.batteryCapapcityPercentage/60;
-	if (tmpBatteryCapacity >= 1)
-		tmpBatteryCapacity = 1;
-
-	uint8_t motorSpeed = MAX_MOTOR_SPEED * tmpBatteryCapacity;
-
-	// time = distance/speed
-	return motorStartingTime + (FLAP_MOTION_DISTANCE / motorSpeed);
 }
 
 void measureMotorOperationTime(){

@@ -30,6 +30,7 @@ typedef struct{
 	bool motorOperationTimeSetted;
 	util_time_t motorButtonCtrlTime; // If the flap motion stoppped, the running time is safed here, to ensure that the same running time is used in the other direction
 	bool motorWaitForButton; 		// Used if the motor is stoped by the button Flap_CTRL
+	util_time_t lastTimeMotorRuns;
 } flap_t;
 flap_t flap;
 
@@ -73,11 +74,10 @@ void stopMotor();
 bool safetyTest();
 
 /*
- *Calculate the stoping time of the motor, depending on the given distance of the flap, the battery voltage and the max. motor speed
- *@return Time on which the motor should stops
+ * Measure the motor operation time if its setting about the IN_USE function. The function will start if motorOperationTimeSetted is set to false.
+ * This happens only if the display page switch from DISPLAY_CONFIG to DISPLAY_CONFIG_IN_USE
+ * With the FLAP_CTRL_BTTN starts the timer and with pushing this button again it stops and safe the time for later opening or closing the flap.
  */
-uint32_t calculateMotorStopTimeWithBatCap();
-
 void measureMotorOperationTime();
 
 #endif

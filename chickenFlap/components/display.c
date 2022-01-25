@@ -1,7 +1,6 @@
 #include "display.h"
 
 void display_init(){
-	display.displayEnable = true;
 	digitalWrite(DISPLAY_ENABLE, HIGH);
 	display.displayPage = DISPLAY_HOME;
 	display.menuSelect = MENU_SELECT_WATCH;
@@ -15,7 +14,14 @@ void display_init(){
 
 void display_update(){
 	// Stop if the display is disabled
-	if (!display.displayEnable)
+	if (SSD1306.DisplayOn == DISPLAY_OFF)
+		return;
+
+	// Play start animation
+	ssd1306StartAnimation();
+
+	// Wait until finishing the start animation
+	if(startAnimation.enable)
 		return;
 
 	displayNavigation();
@@ -23,9 +29,6 @@ void display_update(){
 }
 
 void displayStateMachine() {
-	// Display enable
-	digitalWrite(DISPLAY_ENABLE, display.displayEnable);
-
 	// Reset diplay
 	ssd1306_Fill(Black);
 
@@ -56,7 +59,6 @@ void displayStateMachine() {
 
 	// Battery capacity
 	char strBatValue[10] = "";
-	bms.batteryCapapcityPercentage = 100; // TODO
 	sprintf(strBatValue,"%d", bms.batteryCapapcityPercentage);
 	strcat(strBatValue, "%");
 
@@ -123,7 +125,7 @@ void displayStateMachine() {
 	ssd1306_WriteString(strTimerTime, Font_6x8, White);
 
 	// Flap status (OPENED / CLOSED / OPENING / CLOSING)
-	char strFlap[15] = "Flap :";
+	char strFlap[15] = "Flap: ";
 
 	if (!flap.motorEnable)
 		strcat(strFlap, "ERROR");
@@ -178,12 +180,12 @@ void displayStateMachine() {
 	char strMotorOperationTime[20] = "";
 	char strMotorRunningTimeSecond[5] = "";
 	sprintf(strMotorRunningTimeSecond,"%d",
-		flap.motorOperationTime/1000
+		(int)flap.motorOperationTime/1000
 	);
 
 	char strMotorRunningTimeTenth[5] = "";
 	sprintf(strMotorRunningTimeTenth,"%d",
-		((flap.motorOperationTime/100) % 10)
+		(int)((flap.motorOperationTime/100) % 10)
 	);
 
 	// Add back and enter block at the bottom of the screen
@@ -381,7 +383,6 @@ void displayStateMachine() {
 		ssd1306_WriteString(strMotorOperationTime, Font_6x8, White);
 		break;
 	case DISPLAY_CONFIG_ADJUST_TIME:
-		//TODO
 		// Motor active time in seconds with one tenth
 		strcat(strMotorOperationTime, strMotorRunningTimeSecond);
 		strcat(strMotorOperationTime,".");
@@ -480,6 +481,7 @@ void displayNavigation(){
 			// End set watch digits if minutes is selected and Enter is pushed
 			else if (display.watchSelect == WATCH_SELECT_MINUTE){
 				display.watchSelect = WATCH_SELECT_NONE;
+				resetSecCounter();
 			}
 		}
 
@@ -499,8 +501,12 @@ void displayNavigation(){
 							watch.watchOneHour++;
 
 						// Decrease if left button is pressed
-						else
+						else if(watch.watchOneHour != 0)
 							watch.watchOneHour--;
+						else if(watch.watchDecHour > 0){
+							watch.watchDecHour--;
+							watch.watchOneHour = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -511,8 +517,12 @@ void displayNavigation(){
 						watch.watchOneHour++;
 
 					// Decrease if left button is pressed
-					else
+					else if(watch.watchOneHour != 0)
 						watch.watchOneHour--;
+					else if(watch.watchDecHour > 0){
+						watch.watchDecHour--;
+						watch.watchOneHour = 9;
+					}
 				}
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
 				if (watch.watchOneHour >= 10) {
@@ -537,8 +547,12 @@ void displayNavigation(){
 							watch.watchOneMinute++;
 
 						// Decrease if left button is pressed
-						else
+						else if(watch.watchOneMinute != 0)
 							watch.watchOneMinute--;
+						else if(watch.watchDecMinute > 0){
+							watch.watchDecMinute--;
+							watch.watchOneMinute = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -549,8 +563,12 @@ void displayNavigation(){
 						watch.watchOneMinute++;
 
 					// Decrease if left button is pressed
-					else
+					else if(watch.watchOneMinute != 0)
 						watch.watchOneMinute--;
+					else if(watch.watchDecMinute > 0){
+						watch.watchDecMinute--;
+						watch.watchOneMinute = 9;
+					}
 				}
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
 				if (watch.watchOneMinute >= 10) {
@@ -705,8 +723,12 @@ void displayNavigation(){
 							timer.closeFlapTime_One_H++;
 
 						// Decrease if left button is pressed
-						else
+						else if(timer.closeFlapTime_One_H != 0)
 							timer.closeFlapTime_One_H--;
+						else if (timer.closeFlapTime_Dec_H > 0){
+							timer.closeFlapTime_Dec_H--;
+							timer.closeFlapTime_One_H = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -717,8 +739,12 @@ void displayNavigation(){
 						timer.closeFlapTime_One_H++;
 
 					// Decrease if left button is pressed
-					else
+					else if(timer.closeFlapTime_One_H != 0)
 						timer.closeFlapTime_One_H--;
+					else if (timer.closeFlapTime_Dec_H > 0){
+						timer.closeFlapTime_Dec_H--;
+						timer.closeFlapTime_One_H = 9;
+					}
 				}
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
 				if (timer.closeFlapTime_One_H >= 10) {
@@ -743,8 +769,12 @@ void displayNavigation(){
 							timer.closeFlapTime_One_M++;
 
 						// Decrease if left button is pressed
-						else
+						else if(timer.closeFlapTime_One_M != 0)
 							timer.closeFlapTime_One_M--;
+						else if (timer.closeFlapTime_Dec_M > 0){
+							timer.closeFlapTime_Dec_M--;
+							timer.closeFlapTime_One_M = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -755,8 +785,12 @@ void displayNavigation(){
 						timer.closeFlapTime_One_M++;
 
 					// Decrease if left button is pressed
-					else
+					else if(timer.closeFlapTime_One_M != 0)
 						timer.closeFlapTime_One_M--;
+					else if (timer.closeFlapTime_Dec_M > 0){
+						timer.closeFlapTime_Dec_M--;
+						timer.closeFlapTime_One_M = 9;
+					}
 				}
 
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
@@ -803,8 +837,12 @@ void displayNavigation(){
 							timer.openFlapTime_One_H++;
 
 						// Decrease if left button is pressed
-						else
+						else if(timer.openFlapTime_One_H != 0)
 							timer.openFlapTime_One_H--;
+						else if (timer.openFlapTime_Dec_H > 0){
+							timer.openFlapTime_Dec_H--;
+							timer.openFlapTime_One_H = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -815,8 +853,12 @@ void displayNavigation(){
 						timer.openFlapTime_One_H++;
 
 					// Decrease if left button is pressed
-					else
+					else if(timer.openFlapTime_One_H != 0)
 						timer.openFlapTime_One_H--;
+					else if (timer.openFlapTime_Dec_H > 0){
+						timer.openFlapTime_Dec_H--;
+						timer.openFlapTime_One_H = 9;
+					}
 				}
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
 				if (timer.openFlapTime_One_H >= 10) {
@@ -841,8 +883,12 @@ void displayNavigation(){
 							timer.openFlapTime_One_M++;
 
 						// Decrease if left button is pressed
-						else
+						else if(timer.openFlapTime_One_M != 0)
 							timer.openFlapTime_One_M--;
+						else if (timer.openFlapTime_Dec_M > 0){
+							timer.openFlapTime_Dec_M--;
+							timer.openFlapTime_One_M = 9;
+						}
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
@@ -853,8 +899,12 @@ void displayNavigation(){
 						timer.openFlapTime_One_M++;
 
 					// Decrease if left button is pressed
-					else
+					else if(timer.openFlapTime_One_M != 0)
 						timer.openFlapTime_One_M--;
+					else if (timer.openFlapTime_Dec_M > 0){
+						timer.openFlapTime_Dec_M--;
+						timer.openFlapTime_One_M = 9;
+					}
 				}
 
 				// Rise Dec digit if 10 ones are reached and set ones back to 0
@@ -905,7 +955,6 @@ void displayNavigation(){
 		// Nothing to do
 		break;
 	case DISPLAY_CONFIG_ADJUST_TIME:
-		//TODO
 		if(button.buttonMenuEnter && button.onePingIfButtonPressed){
 
 			// With Enter set active motor duration time
@@ -930,8 +979,11 @@ void displayNavigation(){
 						flap.motorOperationTime = tmpMotorTime*100;
 					}
 					// Decrease if left button is pressed
-					else
-						flap.motorOperationTime--;
+					else {
+						util_time_t tmpMotorTime = flap.motorOperationTime / 100;
+						tmpMotorTime--;
+						flap.motorOperationTime = tmpMotorTime*100;
+					}
 				}
 
 			// Normal rising/sinking of digits before x pressed seconds
@@ -944,8 +996,11 @@ void displayNavigation(){
 					flap.motorOperationTime = tmpMotorTime*100;
 				}
 				// Decrease if left button is pressed
-				else
-					flap.motorOperationTime--;
+				else {
+					util_time_t tmpMotorTime = flap.motorOperationTime / 100;
+					tmpMotorTime--;
+					flap.motorOperationTime = tmpMotorTime*100;
+				}
 			}
 		}
 		break;
@@ -967,22 +1022,16 @@ void nextDisplayPage(displayPage_t nextDisplayPage){
 }
 
 void displayEnable(){
-	digitalWrite(DISPLAY_ENABLE, HIGH);
+	if(ssd1306_GetDisplayOn() == DISPLAY_ON)
+		return;
+
+	ssd1306_SetDisplayOn(DISPLAY_ON);
 }
 
 void displayDisable(){
-	digitalWrite(DISPLAY_ENABLE, LOW);
-}
-
-void getTimerOpeningTimeInString(char* dest){
-	char tmp[6];
-	sprintf(tmp, "%d%d:%d%d",
-		timer.openFlapTime_Dec_H,
-		timer.openFlapTime_One_H,
-		timer.openFlapTime_Dec_M,
-		timer.openFlapTime_One_M
-	);
-	strcat(dest,tmp);
+	if(ssd1306_GetDisplayOn() == DISPLAY_OFF)
+		return;
+	ssd1306_SetDisplayOn(DISPLAY_OFF);
 }
 
 void addBlockDownRight(char* string){

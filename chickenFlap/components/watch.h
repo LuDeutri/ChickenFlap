@@ -22,5 +22,7 @@ bool watchRestart;
 void watch_init();
 void watch_update();
 
+void resetSecCounter();
+
 
 #endif

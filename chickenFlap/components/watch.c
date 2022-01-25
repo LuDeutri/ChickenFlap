@@ -44,3 +44,7 @@ void watch_update(){
 	if (watch.watchDecHour >= 2 && watch.watchOneHour >= 4 && (display.watchSelect == WATCH_SELECT_NONE))
 		watchRestart = true;
 }
+
+void resetSecCounter(){
+	watch.watchTimer = millis();
+}

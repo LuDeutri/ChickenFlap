@@ -15,6 +15,7 @@ _BEGIN_STD_C
 
 #include "ssd1306_conf.h"
 #include "ssd1306_fonts.h"
+#include "ssd1306_startAnimation.h"
 
 #if defined(STM32F0)
 #include "stm32f0xx_hal.h"

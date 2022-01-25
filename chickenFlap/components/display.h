@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "../ssd1306/ssd1306.h"
+#include "../ssd1306/ssd1306_startAnimation.h"
 
 #include "bms.h"
 #include "button.h"
@@ -19,6 +20,9 @@
 #include "timer.h"
 #include "watch.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
+
+#define DISPLAY_OFF 0
+#define DISPLAY_ON 1
 
 typedef enum{
 	DISPLAY_HOME,
@@ -37,16 +41,6 @@ typedef enum{
 	MENU_SELECT_TIMER,
 	MENU_SELECT_CONFIG
 } menuSelect_t;
-
-typedef enum{
-	CONFIG_SELECT_IN_USE,
-	CONFIG_SELECT_ADJUST_TIME
-} configSelect_t;
-
-typedef enum{
-	ADJUST_TIME_SELECT_NONE,
-	ADJUST_TIME_SELECT_SECONDS
-} adjustTimeSelect_t;
 
 typedef enum{
 	WATCH_SELECT_NONE,
@@ -75,9 +69,17 @@ typedef enum{
 	TIMER_TIME_CLOSING
 } timerTime_t;
 
+typedef enum{
+	CONFIG_SELECT_IN_USE,
+	CONFIG_SELECT_ADJUST_TIME
+} configSelect_t;
+
+typedef enum{
+	ADJUST_TIME_SELECT_NONE,
+	ADJUST_TIME_SELECT_SECONDS
+} adjustTimeSelect_t;
 
 typedef struct{
-	bool displayEnable; 	// True: Display on, False: Display off
 	uint8_t displayPage; 	// Enum: displayPage_t
 	uint8_t menuSelect;		// Enum: menuSelect_t
 	uint8_t watchSelect;	// Enum: watchSelect_t
@@ -120,12 +122,16 @@ void displayEnable();
  */
 void displayDisable();
 
-/**
- * Get opening time of the timer for the flap added to the given string
+/*
+ * Add string with an rectangle in the down right edge
+ * @param string to be shown
  */
-void getTimerOpeningTimeInString(char* dest);
-
 void addBlockDownRight(char* string);
+
+/*
+ * Add string with an rectangle in the down left edge
+ * @param string to be shown
+ */
 void addBlockDownLeft(char* string);
 
 #endif
