@@ -1,5 +1,0 @@
-#include "../../../../chickenFlap/dart/hal_wrapper/driver/chrono/chrono_time.h"
-#include "../../../../chickenFlap/dart/hal_wrapper/driver/fatfs/fatfs_filesystem.h"
-#include "../../../../chickenFlap/dart/hal_wrapper/driver/lwip/lwip_network.h"
-#include "../../../../chickenFlap/dart/hal_wrapper/driver/mcp2515/mcp2515.h"
-#include "../../../../chickenFlap/dart/hal_wrapper/driver/stdio/stdio_uart.h"
