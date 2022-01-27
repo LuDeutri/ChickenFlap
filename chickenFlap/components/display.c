@@ -205,7 +205,7 @@ void displayStateMachine() {
 				strcat(strFlap, "GESCHLOSSEN");
 			#endif
 			#ifdef ENABLE_ENGLISH_LANGUAGE
-				strcat(strFlap, "CLOSING");
+				strcat(strFlap, "CLOSED");
 			#endif
 			break;
 		default:
