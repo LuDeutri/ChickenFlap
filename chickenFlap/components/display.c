@@ -9,6 +9,7 @@ void display_init(){
 	display.watchSelect = WATCH_SELECT_NONE;
 	display.configSelect = CONFIG_SELECT_IN_USE;
 	display.adjustTimeSelect = ADJUST_TIME_SELECT_NONE;
+	display.notificationWindowActive = false;
 	ssd1306_Init();
 }
 
@@ -17,12 +18,11 @@ void display_update(){
 	if (SSD1306.DisplayOn == DISPLAY_OFF)
 		return;
 
-	// Play start animation
-	ssd1306StartAnimation();
-
-	// Wait until finishing the start animation
-	if(startAnimation.enable)
+	// Stop if an error or warning window is shown and wait until one button is pushed to continue with normal display operation
+	if(display.notificationWindowActive){
+		closeNotificationWindow();
 		return;
+	}
 
 	displayNavigation();
 	displayStateMachine();
@@ -39,16 +39,36 @@ void displayStateMachine() {
 
 	switch(timer.timerState){
 	case TIMER_ACTIVE:
-		strcat(strTimer, "ON");
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			strcat(strTimer, "AN");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			strcat(strTimer, "ON");
+		#endif
 		break;
 	case TIMER_DEACTIVE:
-		strcat(strTimer, "OFF");
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			strcat(strTimer, "AUS");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			strcat(strTimer, "OFF");
+		#endif
 		break;
 	case TIMER_ONLY_OPEN:
-		strcat(strTimer, "OPENING");
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			strcat(strTimer, "OEFFNEN");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			strcat(strTimer, "OPENING");
+		#endif
 		break;
 	case TIMER_ONLY_CLOSE:
-		strcat(strTimer, "CLOSING");
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			strcat(strTimer, "SCHLIESSEN");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			strcat(strTimer, "CLOSING");
+		#endif
 		break;
 	default:
 		strcat(strTimer, "---");
@@ -124,6 +144,31 @@ void displayStateMachine() {
 	ssd1306_SetCursor(0,9);
 	ssd1306_WriteString(strTimerTime, Font_6x8, White);
 
+	// Create a blinking notification if an error or a warning is true
+	if(stateMachine.state == STATE_ERROR || warning.overallWarning){
+		char strFailure[10] = "";
+		if(stateMachine.state == STATE_ERROR){
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFailure, "FEHLER");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFailure, "ERROR");
+			#endif
+		} else if (warning.overallWarning) {
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFailure, "WARNUNG");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFailure, "WARNING");
+			#endif
+		}
+
+		if(millis() % 1000 < 700) {
+			ssd1306_SetCursor(80,9);
+			ssd1306_WriteString(strFailure, Font_6x8, White);
+		}
+	}
+
 	// Flap status (OPENED / CLOSED / OPENING / CLOSING)
 	char strFlap[15] = "Flap: ";
 
@@ -132,16 +177,36 @@ void displayStateMachine() {
 	else {
 		switch(flap.actuallyStateFlap){
 		case FLAP_OPENED:
-			strcat(strFlap, "OPENED");
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFlap, "GEOEFFNET");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFlap, "OPENED");
+			#endif
 			break;
 		case FLAP_OPENING:
-			strcat(strFlap, "OPENING");
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFlap, "OEFFNET");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFlap, "OPENING");
+			#endif
 			break;
 		case FLAP_CLOSING:
-			strcat(strFlap, "CLOSING");
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFlap, "SCHLIESSEND");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFlap, "CLOSING");
+			#endif
 			break;
 		case FLAP_CLOSED:
-			strcat(strFlap, "CLOSED");
+			#ifdef ENABLE_GERMAN_LANGUAGE
+				strcat(strFlap, "GESCHLOSSEN");
+			#endif
+			#ifdef ENABLE_ENGLISH_LANGUAGE
+				strcat(strFlap, "CLOSING");
+			#endif
 			break;
 		default:
 			strcat(strFlap, "---");
@@ -219,7 +284,13 @@ void displayStateMachine() {
 		// Watch block
 		ssd1306_DrawRectangle(6, 33, 38, 43, White);
 		ssd1306_SetCursor(8,35);
-		ssd1306_WriteString("Watch", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_SetCursor(11,35);
+			ssd1306_WriteString("Uhr", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Watch", Font_6x8, White);
+		#endif
 
 		// Timer block
 		ssd1306_DrawRectangle(45, 33, 78, 43, White);
@@ -280,35 +351,74 @@ void displayStateMachine() {
 		}
 		//--------------------- OPENING Configurations ---------------------
 		ssd1306_SetCursor(0,32);
-		ssd1306_WriteString("Open:", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Auf:", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Open:", Font_6x8, White);
+		#endif
 
 		// Activate Block
 		ssd1306_SetCursor(38,32);
-		ssd1306_WriteString("ON", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("AN", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("ON", Font_6x8, White);
+		#endif
 
 		// Dectivate Block
 		ssd1306_SetCursor(55,32);
-		ssd1306_WriteString("OFF", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("AUS", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("OFF", Font_6x8, White);
+		#endif
 
 		// Time set Block
 		ssd1306_SetCursor(78,32);
-		ssd1306_WriteString("Set Time", Font_6x8, White);
-
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Uhrzeit", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Set Time", Font_6x8, White);
+		#endif
 		//--------------------- CLOSING Configurations ---------------------
 		ssd1306_SetCursor(0,42);
-		ssd1306_WriteString("Close:", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Zu:", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Close:", Font_6x8, White);
+		#endif
 
 		// Activate Block
 		ssd1306_SetCursor(38,42);
-		ssd1306_WriteString("ON", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("AN", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("ON", Font_6x8, White);
+		#endif
 
 		// Dectivate Block
 		ssd1306_SetCursor(55,42);
-		ssd1306_WriteString("OFF", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("AUS", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("OFF", Font_6x8, White);
+		#endif
 
 		// Time set Block
 		ssd1306_SetCursor(78,42);
-		ssd1306_WriteString("Set Time", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Uhrzeit", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Set Time", Font_6x8, White);
+		#endif
 		break;
 	case DISPLAY_TIMER_CLOSING:
 		ssd1306_SetCursor(25,30);
@@ -357,7 +467,12 @@ void displayStateMachine() {
 
 		// Explanation
 		ssd1306_SetCursor(25,29);
-		ssd1306_WriteString("Set motor time", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Set Motorzeit", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Set motor time", Font_6x8, White);
+		#endif
 
 		// Set on run block
 		ssd1306_DrawRectangle(10, 39, 62, 49, White);
@@ -372,13 +487,23 @@ void displayStateMachine() {
 	case DISPLAY_CONFIG_IN_USE:
 		// Explanation
 		ssd1306_SetCursor(5,29);
-		ssd1306_WriteString("Use button FlapCTRL", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Use Taster FlapCTRL", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Use button FlapCTRL", Font_6x8, White);
+		#endif
 
 		// Measured time
 		strcat(strMotorOperationTime, strMotorRunningTimeSecond);
 		strcat(strMotorOperationTime,".");
 		strcat(strMotorOperationTime, strMotorRunningTimeTenth);
-		strcat(strMotorOperationTime, " Seconds");
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			strcat(strMotorOperationTime, " Sekunden");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			strcat(strMotorOperationTime, " Seconds");
+		#endif
 		ssd1306_SetCursor(30,41);
 		ssd1306_WriteString(strMotorOperationTime, Font_6x8, White);
 		break;
@@ -396,7 +521,12 @@ void displayStateMachine() {
 			ssd1306_WriteString(strMotorOperationTime, Font_11x18, White);
 
 		ssd1306_SetCursor(80,35);
-		ssd1306_WriteString("Seconds", Font_6x8, White);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+		ssd1306_WriteString("Sekunden", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Seconds", Font_6x8, White);
+		#endif
 		break;
 	default:
 		// Do nothing
@@ -440,6 +570,8 @@ void displayNavigation(){
 	case DISPLAY_HOME:
 		if (button.buttonMenuEnter && button.onePingIfButtonPressed)
 			nextDisplayPage(DISPLAY_MENU);
+		if((stateMachine.state == STATE_ERROR || warning.overallWarning) && button.buttonRight && button.onePingIfButtonPressed)
+			resetNotificationShown();
 		break;
 	case DISPLAY_MENU:
 		// Increase Selection
@@ -1044,4 +1176,13 @@ void addBlockDownLeft(char* string){
 	ssd1306_DrawRectangle(0, 53, 27, 63, White);
 	ssd1306_SetCursor(3,55);
 	ssd1306_WriteString(string, Font_6x8, White);
+}
+
+void closeNotificationWindow(){
+	// Stop if no button is pressed
+	if(!anyButtonPushed())
+		return;
+
+	setNotificationShown();
+	display.notificationWindowActive = false;
 }

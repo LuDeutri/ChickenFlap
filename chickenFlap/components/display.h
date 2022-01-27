@@ -87,6 +87,7 @@ typedef struct{
 	uint8_t timerTimeSelect;	// Enum: timerTimeSelect_t
 	uint8_t configSelect;		// Enum: configSelect_t
 	uint8_t adjustTimeSelect;	// Enum: adjustTimeSelect_t
+	bool notificationWindowActive; // True if an error or warn window is shown on the display
 } display_t;
 display_t display;
 

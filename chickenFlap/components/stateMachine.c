@@ -75,7 +75,7 @@ void stateMachine_update(){
 
 	// Update Debug LED
 	if (stateMachine.state==STATE_ERROR){
-		digitalWrite(DEBUG_LED, LOW); // Error case: LED blinks faster
+		digitalWrite(DEBUG_LED, millis() % 300 > 150); // Error case: LED blinks faster
 		digitalWrite(ERROR_LED, LOW);
 	} else if (stateMachine.state == STATE_INIT){
 		digitalWrite(DEBUG_LED, millis() % 500 > 250);

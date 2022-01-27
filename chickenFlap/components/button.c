@@ -51,7 +51,7 @@ void setButtonTime(){
 	{
 		button.firstTimeButtonPressed = button.lastTimeButtonPressed = millis();
 		// If display off, dont set a button ping
-		if(ssd1306_GetDisplayOn() == 1)
+		if(ssd1306_GetDisplayOn() == 1 && !display.notificationWindowActive)
 			button.onePingIfButtonPressed = true;
 	}
 }

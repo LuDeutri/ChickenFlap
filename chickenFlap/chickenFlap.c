@@ -2,8 +2,6 @@
 
 void chickenFlap_main(){
 	chickenFlap_init();
-
-
 	while(1)
 		chickenFlap_update();
 }
@@ -32,12 +30,17 @@ void chickenFlap_update(){
 	dartUART_update();
 	dartI2C_update();
 
+
+	ssd1306StartAnimation();
+	// Wait with normal operation until the start animation is finished
+	if(startAnimation.enable)
+		return;
+
 	stateMachine_update();
 	if (stateMachine.state> STATE_INIT) {
 		bms_update();
 		watch_update();
 		button_update();
-		stateMachine_update();
 		display_update();
 		error_update();
 	}

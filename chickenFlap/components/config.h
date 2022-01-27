@@ -11,8 +11,9 @@
 
 // ------------ Enable flags ------------
 // If not used comment out the corresponding lines
+
 // Enable battery capacity check, a low battery will be ignored if defined
-//#define ENABLE_BATTERY_CAPACITY_CHECK
+#define ENABLE_BATTERY_CAPACITY_CHECK
 // Enable start animation
 #define SSD13006_ENABLE_START_ANIMATION
 // Enable start animation slogan
@@ -20,20 +21,34 @@
 // Enable start animation movie scene
 #define SSD13006_START_ANIMATION_MOVIE_SCENE
 
+//---------- One language must be defined ----------------
+// Use german language for error and warning descriptions
+//#define ENABLE_GERMAN_LANGUAGE
+// Use english language for error and warning descitptions
+#define ENABLE_ENGLISH_LANGUAGE
+
+/* -------------------------------------------------------------------
+ * Dont comment out the constants below this line. Only adjust of the defined value is permitted
+ * -------------------------------------------------------------------
+ */
 
 // ------------ Timeouts ------------
 // Error
 #define TIMEOUT_ERROR_TIMER_TIMES 300000 	// 10 minutes
 #define TIMEOUT_ERROR_DISPLAY_INIT 10000 	// 10 seconds
 #define TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME 120000 // ms <=> 120 seconds
+#define TIMEOUT_ERROR_BATTERY_EMPTY 30000 // 30 seconds
 
 // Warning
-#define TIMEOUT_WARN_NO_BATTERY_DATA 60000	// 1 minute
+#define TIMEOUT_WARN_NO_BATTERY_DATA 10000	// 10 seconds
+#define TIMEOUT_WARN_BATTERY_LOW 20000 // 20 seconds
 
 // Define time without any pressed buttons until the statemachine switch into Sleepmode and turn off the display
 #define TIMEOUT_SLEEP_MODE 60000 // ms (1 min)
 // Define max. duration of the start animation
-#define TIMEOUT_MAX_START_ANIMATION_TIME 30000 // 30 seconds
+#define TIMEOUT_MAX_START_ANIMATION_TIME 40000 // 40 seconds
+// Define time after that an error or warning notification can show again
+#define TIMEOUT_NOTIFICATION_SHOWN 1200000 // 20 minutes
 
 
 // ------------ Battery ------------
