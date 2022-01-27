@@ -100,7 +100,7 @@ void ssd1306StartAnimation_slogan(){
 	if (millis()>1000 && millis() < 15000) {
 		drawPicture(40, 60, heartDef);
 		// Hold display for a couple of seconds
-		delayMillis(8000);
+		delayMillis(6000);
 		// Finish slogan
 		startAnimation.sloganFinished = true;
 	} else if(millis()>2000)
@@ -118,23 +118,23 @@ void ssd1306StartAnimation_movieScene(){
 		return;
 
 	switch(startAnimation.roundMovie){
-	case 0:
-		drawPicture(3, 10, chickenStandardDef);
+	case 0 ... 12:
+		drawPicture(3+startAnimation.roundMovie, 10, chickenStandardDef);
 		break;
-	case 1:
-		drawPicture(15, 10, chickenStandardDef);
+	case 13 ... 18:
+		drawPicture(15+(startAnimation.roundMovie-13), 10, chickenStandardDef);
 		drawPicture(100, 5, chickenFlapClosedDef);
 		break;
-	case 2:
+	case 19 ... 23:
 		drawPicture(15, 10, chickenStandardDef);
 		drawPicture(100, 5, chickenFlapOpenedDef);
 		break;
-	case 3:
+	case 24 ... 28:
 		drawPicture(15, 10, chickenStrechedDef);
 		drawPicture(100, 5, chickenFlapOpenedDef);
 		break;
-	case 4:
-		drawPicture(60, 10, chickenStandardDef);
+	case 29 ... 39:
+		drawPicture(50+(startAnimation.roundMovie-29), 10, chickenStandardDef);
 		drawPicture(15, 5, chickenFlapOpenedDef);
 		break;
 	default:
@@ -142,12 +142,12 @@ void ssd1306StartAnimation_movieScene(){
 		startAnimation.movieFinished = true;
 	}
 	ssd1306_UpdateScreen();
-	delayMillis(2000);
 
-	if(startAnimation.roundMovie < 4){
+	if(startAnimation.roundMovie < 39){
 		startAnimation.roundMovie++;
 	} else {
 		// Finish movie scene
+		delayMillis(2000);
 		startAnimation.movieFinished = true;
 		startAnimation.roundMovie = 0;
 	}
@@ -185,7 +185,7 @@ void drawPicture(uint8_t startX, uint8_t startY, pictureDef_t pictureDef){
 }
 
 // 18 x 52
-static const uint8_t chickenFlapOpenedTable [] = {
+static const uint8_t chickenFlapOpenedTable[] = {
 
 	0x20, 0x00, 0x00,	//0				x
 	0x30, 0x00, 0x00,	//1				xx
