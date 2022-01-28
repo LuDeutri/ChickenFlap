@@ -20,6 +20,8 @@
 #define SSD13006_START_ANIMATION_SLOGAN
 // Enable start animation movie scene
 #define SSD13006_START_ANIMATION_MOVIE_SCENE
+// Enable DEBUG LED
+//#define ENABLE_DEBUG_LED
 
 //---------- One language must be defined ----------------
 // Use german language for error and warning descriptions
@@ -37,11 +39,11 @@
 #define TIMEOUT_ERROR_TIMER_TIMES 300000 	// 10 minutes
 #define TIMEOUT_ERROR_DISPLAY_INIT 10000 	// 10 seconds
 #define TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME 120000 // ms <=> 120 seconds
-#define TIMEOUT_ERROR_BATTERY_EMPTY 30000 // 30 seconds
+#define TIMEOUT_ERROR_BATTERY_EMPTY 50000 // 50 seconds
 
 // Warning
-#define TIMEOUT_WARN_NO_BATTERY_DATA 10000	// 10 seconds
-#define TIMEOUT_WARN_BATTERY_LOW 20000 // 20 seconds
+#define TIMEOUT_WARN_NO_BATTERY_DATA 30000	// 30 seconds
+#define TIMEOUT_WARN_BATTERY_LOW 40000 // 40 seconds
 
 // Define time without any pressed buttons until the statemachine switch into Sleepmode and turn off the display
 #define TIMEOUT_SLEEP_MODE 60000 // ms (1 min)

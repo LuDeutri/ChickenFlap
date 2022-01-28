@@ -98,13 +98,13 @@ void checkBatteryCapacity(){
 	}
 
 	// Set low battery warning. Set to false if the error is setting true
-	if(error_delay(&warnBatteryLow, bms.batteryCapapcityPercentage < WARNING_BATTERY_LOW_PERCENTAGE && !error.emptyBattery && !warning.noBatteryData, TIMEOUT_WARN_BATTERY_LOW))
+	if(error_delay(&warnBatteryLow, bms.batteryCapapcityPercentage < WARNING_BATTERY_LOW_PERCENTAGE && !error.emptyBattery, TIMEOUT_WARN_BATTERY_LOW))
 		warning.lowBattery = true;
 	else if(error.emptyBattery)
 		warning.lowBattery = false;
 
 	// Set empty battery error
-	if(error_delay(&errBatteryEmpty, bms.batteryCapapcityPercentage < ERROR_BATTERY_EMPTY_PERCENTAGE && !warning.noBatteryData, TIMEOUT_ERROR_BATTERY_EMPTY))
+	if(error_delay(&errBatteryEmpty, bms.batteryCapapcityPercentage < ERROR_BATTERY_EMPTY_PERCENTAGE, TIMEOUT_ERROR_BATTERY_EMPTY))
 		error.emptyBattery = true;
 }
 
