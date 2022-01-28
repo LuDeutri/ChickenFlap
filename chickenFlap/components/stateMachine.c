@@ -4,7 +4,8 @@ void stateMachine_init(){
 	stateMachine.state = STATE_INIT;
 	stateMachine.lastState = STATE_INIT;
 	stateMachine.firstTimeInState = 0;
-	stateMachine.errLED = LOW; // Error LED goes on for a functionality test at startup
+	stateMachine.errLED = LOW; 		// Error LED goes on for a functionality test at startup
+	digitalWrite(DEBUG_LED, HIGH);	// Debug LED off, if flag is not set, debug LED stays off
 }
 
 void stateMachine_update(){
@@ -71,19 +72,6 @@ void stateMachine_update(){
 		error.stateMachine = true;
 		nextState(STATE_ERROR);
 		break;
-	}
-
-	// Update Debug LED
-	if (stateMachine.state==STATE_ERROR){
-		digitalWrite(DEBUG_LED, millis() % 300 > 150); // Error case: LED blinks faster
-		digitalWrite(ERROR_LED, LOW);
-	} else if (stateMachine.state == STATE_INIT){
-		digitalWrite(DEBUG_LED, millis() % 500 > 250);
-		digitalWrite(ERROR_LED, millis() % 1000 > 500);
-	} else {
-		digitalWrite(DEBUG_LED, millis() % 3000 > 1500); // Normal operation: LED blinks slowly
-		if (millis()>5000)
-			digitalWrite(ERROR_LED, HIGH);
 	}
 
 	// Safety check

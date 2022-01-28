@@ -44,6 +44,26 @@ void chickenFlap_update(){
 		display_update();
 		error_update();
 	}
+
+	// Update error LED
+	if (stateMachine.state == STATE_ERROR)
+		digitalWrite(ERROR_LED, LOW);					// Error LED on
+	else if (stateMachine.state == STATE_INIT)
+		digitalWrite(ERROR_LED, millis() % 1000 > 500);	// Error LED blinks
+	else{
+		if (millis()>3000)
+			digitalWrite(ERROR_LED, HIGH);				// Error LED after start sequence off
+	}
+
+	// Update debug LED
+	#ifdef ENABLE_DEBUG_LED
+		if (stateMachine.state==STATE_ERROR)
+			digitalWrite(DEBUG_LED, millis() % 300 > 150);
+		 else if (stateMachine.state == STATE_INIT)
+			digitalWrite(DEBUG_LED, millis() % 500 > 250);
+		 else
+			digitalWrite(DEBUG_LED, millis() % 3000 > 1500);
+	#endif
 }
 
 void i2cTest(){
