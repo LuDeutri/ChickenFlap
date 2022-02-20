@@ -22,12 +22,14 @@
 #define SSD13006_START_ANIMATION_MOVIE_SCENE
 // Enable DEBUG LED
 //#define ENABLE_DEBUG_LED
+// Enable battery load status in the top right of the display, should only be defined, if an accumulator is used
+//#define ENABLE_BATTERY_LOAD_STATUS
 
 //---------- One language must be defined ----------------
 // Use german language for error and warning descriptions
-//#define ENABLE_GERMAN_LANGUAGE
+#define ENABLE_GERMAN_LANGUAGE
 // Use english language for error and warning descitptions
-#define ENABLE_ENGLISH_LANGUAGE
+//#define ENABLE_ENGLISH_LANGUAGE
 
 /* -------------------------------------------------------------------
  * Dont comment out the constants below this line. Only adjust of the defined value is permitted
@@ -36,7 +38,7 @@
 
 // ------------ Timeouts ------------
 // Error
-#define TIMEOUT_ERROR_TIMER_TIMES 300000 	// 10 minutes
+#define TIMEOUT_ERROR_TIMER_TIMES 600000 	// 10 minutes
 #define TIMEOUT_ERROR_DISPLAY_INIT 10000 	// 10 seconds
 #define TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME 120000 // ms <=> 120 seconds
 #define TIMEOUT_ERROR_BATTERY_EMPTY 50000 // 50 seconds
