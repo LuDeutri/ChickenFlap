@@ -228,10 +228,10 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Batteriestand/nicht lesbar");
 		else if(warning.timerTimes){
 			char strTimeout[2] = "";
-			sprintf(strTimeout, "%d",(TIMEOUT_ERROR_TIMER_TIMES/1000));
+			sprintf(strTimeout, "%d",(TIMEOUT_ERROR_TIMER_TIMES/60000));
 			char strWarn[255] = "Timer oeffnen und/schliessen Zeit/duerfen nicht/gleich sein. Error/in: ";
 			strcat(strWarn, strTimeout);
-			strcat(strWarn, " Sekunden");
+			strcat(strWarn, " Minuten");
 			strcat(error.errorDescription, strWarn);
 		}
 	#endif
@@ -257,10 +257,10 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Battery data/are not available");
 		else if(warning.timerTimes){
 			char strTimeout[2] = "";
-			sprintf(strTimeout, "%d",(TIMEOUT_ERROR_TIMER_TIMES/1000));
+			sprintf(strTimeout, "%d",(TIMEOUT_ERROR_TIMER_TIMES/60000));
 			char strWarn[255] = "Timer Open and/closing time must/not be the same./Error occours/in: ";
 			strcat(strWarn, strTimeout);
-			strcat(strWarn, " seconds");
+			strcat(strWarn, " minutes");
 			strcat(error.errorDescription, strWarn);
 		}
 	#endif

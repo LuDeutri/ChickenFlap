@@ -135,4 +135,6 @@ void addBlockDownRight(char* string);
  */
 void addBlockDownLeft(char* string);
 
+void closeNotificationWindow();
+
 #endif

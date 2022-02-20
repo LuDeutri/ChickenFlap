@@ -1,191 +1,7 @@
 #include "ssd1306_startAnimation.h"
 
-
-void ssd1306StartAnimation_init(){
-	// Check if start animation is enabled
-	startAnimation.enable = false;
-	#ifdef SSD13006_ENABLE_START_ANIMATION
-		startAnimation.enable = true;
-	#endif
-
-	// Check if slogan animation is enabled
-	startAnimation.sloganFinished = true;
-	#ifdef SSD13006_START_ANIMATION_SLOGAN
-		startAnimation.sloganFinished = false;
-	#endif
-
-	startAnimation.roundMovie = 0;
-	startAnimation.roundSlogan = -1;
-	startAnimation.drawHeratFinished = false;
-
-	heartDef.tableHeight = 30;
-	heartDef.tableWidth = 5;
-	heartDef.pictureWidth = 39;
-	heartDef.data = heartTable;
-	heartDef.displayUpdateWhileBuilding = true;
-	heartDef.buildDirection = 1;
-
-	chickenFlapOpenedDef.tableHeight = 52;
-	chickenFlapOpenedDef.tableWidth = 3;
-	chickenFlapOpenedDef.pictureWidth = 18;
-	chickenFlapOpenedDef.data = chickenFlapOpenedTable;
-	chickenFlapOpenedDef.displayUpdateWhileBuilding = false;
-	chickenFlapOpenedDef.buildDirection = -1;
-
-	chickenFlapClosedDef.tableHeight = 52;
-	chickenFlapClosedDef.tableWidth = 3;
-	chickenFlapClosedDef.pictureWidth = 18;
-	chickenFlapClosedDef.data = chickenFlapClosedTable;
-	chickenFlapClosedDef.displayUpdateWhileBuilding = false;
-	chickenFlapClosedDef.buildDirection = -1;
-
-	chickenStandardDef.tableHeight = 47;
-	chickenStandardDef.tableWidth = 7;
-	chickenStandardDef.pictureWidth = 52;
-	chickenStandardDef.data = chickenStandardTable;
-	chickenStandardDef.displayUpdateWhileBuilding = false;
-	chickenStandardDef.buildDirection = -1;
-
-	chickenStrechedDef.tableHeight = 47;
-	chickenStrechedDef.tableWidth = 7;
-	chickenStrechedDef.pictureWidth = 52;
-	chickenStrechedDef.data = chickenStrechedTable;
-	chickenStrechedDef.displayUpdateWhileBuilding = false;
-	chickenStrechedDef.buildDirection = -1;
-}
-
-void ssd1306StartAnimation(){
-	if (!startAnimation.enable || millis() > TIMEOUT_MAX_START_ANIMATION_TIME)
-		return;
-	if (!SSD1306.Initialized)
-		return;
-
-	#ifdef SSD13006_START_ANIMATION_SLOGAN
-		ssd1306StartAnimation_slogan();
-	#endif
-
-	ssd1306_UpdateScreen();
-	ssd1306_Fill(Black);
-
-	#ifdef SSD13006_START_ANIMATION_MOVIE_SCENE
-		ssd1306StartAnimation_movieScene();
-	#endif
-
-	if(startAnimation.movieFinished && startAnimation.sloganFinished)
-		startAnimation.enable = false;
-}
-
-void ssd1306StartAnimation_slogan(){
-	// Stop if already finished
-	if(startAnimation.sloganFinished){
-		startAnimation.roundSlogan = -1;
-		return;
-	}
-
-	// Reset diplay
-	ssd1306_Fill(Black);
-
-	char strHeadline[30] = "Chickenflap v1.0|1'22";
-	ssd1306_SetCursor(0,0);
-	ssd1306_WriteString(strHeadline, Font_6x8, White);
-
-	char strSecondLine[20] = "Luca Deutrich";
-	ssd1306_SetCursor(0,9);
-	ssd1306_WriteString(strSecondLine, Font_6x8, White);
-
-	char strhappyChicken[30] = "For happy chickens";
-	ssd1306_SetCursor(10,22);
-	ssd1306_WriteString(strhappyChicken, Font_6x8, White);
-
-	if (millis()>1000 && millis() < 15000) {
-		drawPicture(40, 60, heartDef);
-		// Hold display for a couple of seconds
-		delayMillis(6000);
-		// Finish slogan
-		startAnimation.sloganFinished = true;
-	} else if(millis()>2000)
-		// Overtime after 15 seconds
-		startAnimation.sloganFinished = true;
-}
-
-void ssd1306StartAnimation_movieScene(){
-	// Wait for end of slogan view
-	if (!startAnimation.sloganFinished)
-		return;
-
-	// Stop if movie is already ended
-	if (startAnimation.movieFinished)
-		return;
-
-	switch(startAnimation.roundMovie){
-	case 0 ... 12:
-		drawPicture(3+startAnimation.roundMovie, 10, chickenStandardDef);
-		break;
-	case 13 ... 18:
-		drawPicture(15+(startAnimation.roundMovie-13), 10, chickenStandardDef);
-		drawPicture(100, 5, chickenFlapClosedDef);
-		break;
-	case 19 ... 23:
-		drawPicture(15, 10, chickenStandardDef);
-		drawPicture(100, 5, chickenFlapOpenedDef);
-		break;
-	case 24 ... 28:
-		drawPicture(15, 10, chickenStrechedDef);
-		drawPicture(100, 5, chickenFlapOpenedDef);
-		break;
-	case 29 ... 39:
-		drawPicture(50+(startAnimation.roundMovie-29), 10, chickenStandardDef);
-		drawPicture(15, 5, chickenFlapOpenedDef);
-		break;
-	default:
-		warning.startAnimation = true;
-		startAnimation.movieFinished = true;
-	}
-	ssd1306_UpdateScreen();
-
-	if(startAnimation.roundMovie < 39){
-		startAnimation.roundMovie++;
-	} else {
-		// Finish movie scene
-		delayMillis(2000);
-		startAnimation.movieFinished = true;
-		startAnimation.roundMovie = 0;
-	}
-}
-
-void drawPicture(uint8_t startX, uint8_t startY, pictureDef_t pictureDef){
-	uint8_t data = 0;
-
-	// Check safed builddirection
-	if(pictureDef.buildDirection != 1 && pictureDef.buildDirection != -1)
-		pictureDef.buildDirection = 1;
-
-	// Check remaining space on coordinates
-	if (SSD1306_WIDTH < (startX + pictureDef.tableWidth)
-		|| ((SSD1306_HEIGHT < (startY + pictureDef.tableHeight)) && pictureDef.buildDirection == -1)
-		|| ((SSD1306_HEIGHT < (startY - pictureDef.tableHeight)) && pictureDef.buildDirection == 1))
-	{
-		warning.startAnimation = true;
-		return;
-	}
-
-	for (int y=0; y < pictureDef.tableHeight; y++){
-		for (int r=0; r < pictureDef.tableWidth; r++){
-			data = pictureDef.data[r+(pictureDef.tableWidth*y)];
-			for (int x=0; x <= 7; x++){
-				if((data << x) & 0x80){
-					ssd1306_DrawPixel(startX+(x+(8*r)), startY-(y*pictureDef.buildDirection), White);
-				}
-			}
-		}
-		// Update display
-		if(pictureDef.displayUpdateWhileBuilding)
-		ssd1306_UpdateScreen();
-	}
-}
-
 // 18 x 52
-static const uint8_t chickenFlapOpenedTable[] = {
+static const uint8_t chickenFlapOpenedTable [] = {
 
 	0x20, 0x00, 0x00,	//0				x
 	0x30, 0x00, 0x00,	//1				xx
@@ -243,7 +59,7 @@ static const uint8_t chickenFlapOpenedTable[] = {
 };
 
 // 39 x 30 (bxh)
-static const uint8_t heartTable[] = {
+static const uint8_t heartTable [] = {
 	0x00, 0x00, 0x10, 0x00, 0x00, //1 										x
 	0x00, 0x00, 0x28, 0x00, 0x00, //2									   x x
 	0x00, 0x00, 0x44, 0x00, 0x00, //3 									  x   x
@@ -435,3 +251,188 @@ static const uint8_t chickenFlapClosedTable [] = {
 	0x00, 0x01, 0xC0,	//						 	 xxx
 	0x00, 0x01, 0xC0	//							 xxx
 };
+
+
+
+void ssd1306StartAnimation_init(){
+	// Check if start animation is enabled
+	startAnimation.enable = false;
+	#ifdef SSD13006_ENABLE_START_ANIMATION
+		startAnimation.enable = true;
+	#endif
+
+	// Check if slogan animation is enabled
+	startAnimation.sloganFinished = true;
+	#ifdef SSD13006_START_ANIMATION_SLOGAN
+		startAnimation.sloganFinished = false;
+	#endif
+
+	startAnimation.roundMovie = 0;
+	startAnimation.roundSlogan = -1;
+	startAnimation.drawHeratFinished = false;
+
+	heartDef.tableHeight = 30;
+	heartDef.tableWidth = 5;
+	heartDef.pictureWidth = 39;
+	heartDef.data = heartTable;
+	heartDef.displayUpdateWhileBuilding = true;
+	heartDef.buildDirection = 1;
+
+	chickenFlapOpenedDef.tableHeight = 52;
+	chickenFlapOpenedDef.tableWidth = 3;
+	chickenFlapOpenedDef.pictureWidth = 18;
+	chickenFlapOpenedDef.data = chickenFlapOpenedTable;
+	chickenFlapOpenedDef.displayUpdateWhileBuilding = false;
+	chickenFlapOpenedDef.buildDirection = -1;
+
+	chickenFlapClosedDef.tableHeight = 52;
+	chickenFlapClosedDef.tableWidth = 3;
+	chickenFlapClosedDef.pictureWidth = 18;
+	chickenFlapClosedDef.data = chickenFlapClosedTable;
+	chickenFlapClosedDef.displayUpdateWhileBuilding = false;
+	chickenFlapClosedDef.buildDirection = -1;
+
+	chickenStandardDef.tableHeight = 47;
+	chickenStandardDef.tableWidth = 7;
+	chickenStandardDef.pictureWidth = 52;
+	chickenStandardDef.data = chickenStandardTable;
+	chickenStandardDef.displayUpdateWhileBuilding = false;
+	chickenStandardDef.buildDirection = -1;
+
+	chickenStrechedDef.tableHeight = 47;
+	chickenStrechedDef.tableWidth = 7;
+	chickenStrechedDef.pictureWidth = 52;
+	chickenStrechedDef.data = chickenStrechedTable;
+	chickenStrechedDef.displayUpdateWhileBuilding = false;
+	chickenStrechedDef.buildDirection = -1;
+}
+
+void ssd1306StartAnimation(){
+	if (!startAnimation.enable || millis() > TIMEOUT_MAX_START_ANIMATION_TIME)
+		return;
+	if (!SSD1306.Initialized)
+		return;
+
+	#ifdef SSD13006_START_ANIMATION_SLOGAN
+		ssd1306StartAnimation_slogan();
+	#endif
+
+	ssd1306_UpdateScreen();
+	ssd1306_Fill(Black);
+
+	#ifdef SSD13006_START_ANIMATION_MOVIE_SCENE
+		ssd1306StartAnimation_movieScene();
+	#endif
+
+	if(startAnimation.movieFinished && startAnimation.sloganFinished)
+		startAnimation.enable = false;
+}
+
+void ssd1306StartAnimation_slogan(){
+	// Stop if already finished
+	if(startAnimation.sloganFinished){
+		startAnimation.roundSlogan = -1;
+		return;
+	}
+
+	// Reset diplay
+	ssd1306_Fill(Black);
+
+	char strHeadline[30] = "Chickenflap v1.0|1'22";
+	ssd1306_SetCursor(0,0);
+	ssd1306_WriteString(strHeadline, Font_6x8, White);
+
+	char strSecondLine[20] = "Luca Deutrich";
+	ssd1306_SetCursor(0,9);
+	ssd1306_WriteString(strSecondLine, Font_6x8, White);
+
+	char strhappyChicken[30] = "For happy chickens";
+	ssd1306_SetCursor(10,22);
+	ssd1306_WriteString(strhappyChicken, Font_6x8, White);
+
+	if (millis()>1000 && millis() < 15000) {
+		drawPicture(40, 60, heartDef);
+		// Hold display for a couple of seconds
+		delayMillis(6000);
+		// Finish slogan
+		startAnimation.sloganFinished = true;
+	} else if(millis()>2000)
+		// Overtime after 15 seconds
+		startAnimation.sloganFinished = true;
+}
+
+void ssd1306StartAnimation_movieScene(){
+	// Wait for end of slogan view
+	if (!startAnimation.sloganFinished)
+		return;
+
+	// Stop if movie is already ended
+	if (startAnimation.movieFinished)
+		return;
+
+	switch(startAnimation.roundMovie){
+	case 0 ... 12:
+		drawPicture(3+startAnimation.roundMovie, 10, chickenStandardDef);
+		break;
+	case 13 ... 18:
+		drawPicture(15+(startAnimation.roundMovie-13), 10, chickenStandardDef);
+		drawPicture(100, 5, chickenFlapClosedDef);
+		break;
+	case 19 ... 23:
+		drawPicture(15, 10, chickenStandardDef);
+		drawPicture(100, 5, chickenFlapOpenedDef);
+		break;
+	case 24 ... 28:
+		drawPicture(15, 10, chickenStrechedDef);
+		drawPicture(100, 5, chickenFlapOpenedDef);
+		break;
+	case 29 ... 39:
+		drawPicture(50+(startAnimation.roundMovie-29), 10, chickenStandardDef);
+		drawPicture(15, 5, chickenFlapOpenedDef);
+		break;
+	default:
+		warning.startAnimation = true;
+		startAnimation.movieFinished = true;
+	}
+	ssd1306_UpdateScreen();
+
+	if(startAnimation.roundMovie < 39){
+		startAnimation.roundMovie++;
+	} else {
+		// Finish movie scene
+		delayMillis(2000);
+		startAnimation.movieFinished = true;
+		startAnimation.roundMovie = 0;
+	}
+}
+
+void drawPicture(uint8_t startX, uint8_t startY, pictureDef_t pictureDef){
+	uint8_t data = 0;
+
+	// Check safed builddirection
+	if(pictureDef.buildDirection != 1 && pictureDef.buildDirection != -1)
+		pictureDef.buildDirection = 1;
+
+	// Check remaining space on coordinates
+	if (SSD1306_WIDTH < (startX + pictureDef.tableWidth)
+		|| ((SSD1306_HEIGHT < (startY + pictureDef.tableHeight)) && pictureDef.buildDirection == -1)
+		|| ((SSD1306_HEIGHT < (startY - pictureDef.tableHeight)) && pictureDef.buildDirection == 1))
+	{
+		warning.startAnimation = true;
+		return;
+	}
+
+	for (int y=0; y < pictureDef.tableHeight; y++){
+		for (int r=0; r < pictureDef.tableWidth; r++){
+			data = pictureDef.data[r+(pictureDef.tableWidth*y)];
+			for (int x=0; x <= 7; x++){
+				if((data << x) & 0x80){
+					ssd1306_DrawPixel(startX+(x+(8*r)), startY-(y*pictureDef.buildDirection), White);
+				}
+			}
+		}
+		// Update display
+		if(pictureDef.displayUpdateWhileBuilding)
+		ssd1306_UpdateScreen();
+	}
+}

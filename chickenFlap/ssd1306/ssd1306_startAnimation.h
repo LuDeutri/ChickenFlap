@@ -38,14 +38,9 @@ typedef struct{
 	int8_t buildDirection; // 1: build from top to bottom, -1: build from bottom to top
 } pictureDef_t;
 
-static const uint8_t heartTable[150];
 pictureDef_t heartDef;
-
-static const uint8_t chickenStandardTable[], chickenStrechedTable[];
 pictureDef_t chickenStandardDef;
 pictureDef_t chickenStrechedDef;
-
-static const uint8_t chickenFlapOpenedTable[156], chickenFlapClosedTable[156];
 pictureDef_t chickenFlapOpenedDef;
 pictureDef_t chickenFlapClosedDef;
 

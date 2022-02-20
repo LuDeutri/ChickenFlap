@@ -77,34 +77,36 @@ void displayStateMachine() {
 	ssd1306_SetCursor(0,0);
 	ssd1306_WriteString(strTimer, Font_6x8, White);
 
-	// Battery capacity
-	char strBatValue[10] = "";
-	sprintf(strBatValue,"%d", bms.batteryCapapcityPercentage);
-	strcat(strBatValue, "%");
+	#ifdef ENABLE_BATTERY_LOAD_STATUS
+		// Battery capacity
+		char strBatValue[10] = "";
+		sprintf(strBatValue,"%d", bms.batteryCapapcityPercentage);
+		strcat(strBatValue, "%");
 
-	ssd1306_SetCursor(104,0);
-	ssd1306_WriteString(strBatValue, Font_6x8, White);
+		ssd1306_SetCursor(104,0);
+		ssd1306_WriteString(strBatValue, Font_6x8, White);
+	#endif
 
 	char strTimerTime[20] = "";
-	char strTimerOpenTimeHour[2] = "";
+	char strTimerOpenTimeHour[7] = "";
 	sprintf(strTimerOpenTimeHour, "%d%d",
 		timer.openFlapTime_Dec_H,
 		timer.openFlapTime_One_H
 	);
 
-	char strTimerOpenTimeMinutes[2] = "";
+	char strTimerOpenTimeMinutes[7] = "";
 	sprintf(strTimerOpenTimeMinutes, "%d%d",
 		timer.openFlapTime_Dec_M,
 		timer.openFlapTime_One_M
 	);
 
-	char strTimerCloseTimeHour[2] = "";
+	char strTimerCloseTimeHour[7] = "";
 	sprintf(strTimerCloseTimeHour, "%d%d",
 		timer.closeFlapTime_Dec_H,
 		timer.closeFlapTime_One_H
 	);
 
-	char strTimerCloseTimeMinutes[2] = "";
+	char strTimerCloseTimeMinutes[7] = "";
 	sprintf(strTimerCloseTimeMinutes, "%d%d",
 		timer.closeFlapTime_Dec_M,
 		timer.closeFlapTime_One_M
@@ -163,8 +165,12 @@ void displayStateMachine() {
 			#endif
 		}
 
+		// If the battery capacity is not shown, use top right of the display. Otherwise below there the capacity is shown
 		if(millis() % 1000 < 700) {
+			ssd1306_SetCursor(80,0);
+			#ifdef ENABLE_BATTERY_LOAD_STATUS
 			ssd1306_SetCursor(80,9);
+			#endif
 			ssd1306_WriteString(strFailure, Font_6x8, White);
 		}
 	}
@@ -229,14 +235,14 @@ void displayStateMachine() {
 
 
 	// Variables used in the switch block
-	char strWatchTime[10] = "";
-	char strWatchTimeHours[2] ="";
+	char strWatchTime[20] = "";
+	char strWatchTimeHours[7] ="";
 	sprintf(strWatchTimeHours,"%d%d",
 		watch.watchDecHour,
 		watch.watchOneHour
 	);
 
-	char strWatchTimeMinutes[2] = "";
+	char strWatchTimeMinutes[7] = "";
 	sprintf(strWatchTimeMinutes,"%d%d",
 		watch.watchDecMinute,
 		watch.watchOneMinute
