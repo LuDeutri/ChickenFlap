@@ -13,9 +13,9 @@
 // If not used comment out the corresponding lines
 
 // Enable battery capacity check, a low battery will be ignored if defined
-#define ENABLE_BATTERY_CAPACITY_CHECK
+//#define ENABLE_BATTERY_CAPACITY_CHECK
 // Enable start animation
-#define SSD13006_ENABLE_START_ANIMATION
+//#define SSD13006_ENABLE_START_ANIMATION
 // Enable start animation slogan
 #define SSD13006_START_ANIMATION_SLOGAN
 // Enable start animation movie scene
@@ -27,9 +27,9 @@
 
 //---------- One language must be defined ----------------
 // Use german language for error and warning descriptions
-#define ENABLE_GERMAN_LANGUAGE
+//#define ENABLE_GERMAN_LANGUAGE
 // Use english language for error and warning descitptions
-//#define ENABLE_ENGLISH_LANGUAGE
+#define ENABLE_ENGLISH_LANGUAGE
 
 /* -------------------------------------------------------------------
  * Dont comment out the constants below this line. Only adjust of the defined value is permitted
@@ -78,7 +78,9 @@
 
 // ------------ Motor ------------
 // Define default motor running time if no battery data are used
-#define DEFAULT_MOTOR_RUNNING_TIME 10000 // ms
+#define DEFAULT_MOTOR_RUNNING_TIME 1000 // ms
+// Define max. Motor speed in percent (for the low side driver)
+#define MOTOR_SPEED_PERCENTAGE 55
 
 
 // ------------ Watch ------------

@@ -21,6 +21,11 @@ typedef enum{
 } flapState_t;
 
 typedef struct{
+	uint8_t actuallymotorDirection;
+	uint8_t actuallyDuty;
+} lowSideDriverConfig_t;
+
+typedef struct{
 	uint8_t actuallyStateFlap; // Use the enum flapState_t
 	uint8_t targetStateFlap;	// Use the enum flapState_t
 	bool motorEnable;			// False in error case
@@ -31,6 +36,7 @@ typedef struct{
 	util_time_t motorButtonCtrlTime; // If the flap motion stoppped, the running time is safed here, to ensure that the same running time is used in the other direction
 	bool motorWaitForButton; 		// Used if the motor is stoped by the button Flap_CTRL
 	util_time_t lastTimeMotorRuns;
+	lowSideDriverConfig_t mtrDriverConfig;
 } flap_t;
 flap_t flap;
 
@@ -68,10 +74,9 @@ void motorCtrl(uint8_t direction);
 void stopMotor();
 
 /*
- * Checks if both MosFETs are switched on.
- * @return true if both MosFETs are switched on
+ * Set low side driver pwm duty cycle
  */
-bool safetyTest();
+void setDutyCycle(uint8_t motorDirection, uint8_t duty);
 
 /*
  * Measure the motor operation time if its setting about the IN_USE function. The function will start if motorOperationTimeSetted is set to false.

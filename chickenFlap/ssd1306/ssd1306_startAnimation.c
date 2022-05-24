@@ -269,7 +269,7 @@ void ssd1306StartAnimation_init(){
 
 	startAnimation.roundMovie = 0;
 	startAnimation.roundSlogan = -1;
-	startAnimation.drawHeratFinished = false;
+	startAnimation.drawHeartFinished = false;
 
 	heartDef.tableHeight = 30;
 	heartDef.tableWidth = 5;

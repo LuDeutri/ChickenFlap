@@ -24,7 +24,7 @@ typedef struct{
 	int16_t roundSlogan;
 	uint8_t roundMovie;
 	util_time_t animationStartTime;
-	bool drawHeratFinished;
+	bool drawHeartFinished;
 } startAnimation_t;
 startAnimation_t startAnimation;
 

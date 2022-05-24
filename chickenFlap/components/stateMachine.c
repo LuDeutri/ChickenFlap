@@ -73,12 +73,6 @@ void stateMachine_update(){
 		nextState(STATE_ERROR);
 		break;
 	}
-
-	// Safety check
-	if (stateMachine.state > STATE_INIT) {
-		if(safetyTest())
-			nextState(STATE_ERROR);
-	}
 }
 
 void nextState(state_t nextState){

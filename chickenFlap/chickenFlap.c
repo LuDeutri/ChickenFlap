@@ -1,6 +1,7 @@
 #include "chickenFlap.h"
 
 void chickenFlap_main(){
+	digitalWrite(DISPLAY_ENABLE, LOW);
 	chickenFlap_init();
 	while(1)
 		chickenFlap_update();
@@ -12,6 +13,9 @@ void chickenFlap_init(){
 	dartAnalog_init();
 	dartUART_init();
 	dartI2C_init();
+
+	delayMillis(1000);
+	digitalWrite(DISPLAY_ENABLE, HIGH);
 
 	button_init();
 	display_init();
@@ -54,6 +58,7 @@ void chickenFlap_update(){
 		if (millis()>3000)
 			digitalWrite(ERROR_LED, HIGH);				// Error LED after start sequence off
 	}
+	digitalWrite(DEBUG_LED, HIGH); // LED off
 
 	// Update debug LED
 	#ifdef ENABLE_DEBUG_LED
@@ -64,6 +69,7 @@ void chickenFlap_update(){
 		 else
 			digitalWrite(DEBUG_LED, millis() % 3000 > 1500);
 	#endif
+
 }
 
 void i2cTest(){

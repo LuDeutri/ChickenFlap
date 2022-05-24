@@ -11,6 +11,9 @@ void flap_init(){
 	flap.motorEnable = true;
 	flap.motorButtonCtrlTime = 0;
 	flap.lastTimeMotorRuns = 0;
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
 }
 
 void openFlap() {
@@ -18,7 +21,7 @@ void openFlap() {
 	if(!flap.motorEnable)
 		return;
 
-	// Check if flap is already closed or should not be closed
+	// Check if flap is already open or should not be open
 	if (flap.actuallyStateFlap == FLAP_OPENED || flap.targetStateFlap == FLAP_CLOSED)
 		return;
 
@@ -56,11 +59,9 @@ void motorCtrl(uint8_t direction) {
 
 	// Start motor action
 	if(direction == FLAP_OPENING) {
-		digitalWrite(MOTOR_FLAP_CLOSE, LOW); // Prevent that never both mosfets are switched on (short circuit)
-		digitalWrite(MOTOR_FLAP_OPEN, HIGH);
+		setDutyCycle(MOTOR_FLAP_OPEN, MOTOR_SPEED_PERCENTAGE);
 	} else if (direction == FLAP_CLOSING) {
-		digitalWrite(MOTOR_FLAP_OPEN, LOW); // Prevent that never both mosfets are switched on (short circuit)
-		digitalWrite(MOTOR_FLAP_CLOSE, HIGH);
+		setDutyCycle(MOTOR_FLAP_CLOSE, MOTOR_SPEED_PERCENTAGE);
 	}
 
 	// Calculate motor running time
@@ -86,9 +87,28 @@ void motorCtrl(uint8_t direction) {
 		stopMotor();
 }
 
+void setDutyCycle(uint8_t motorDirection, uint8_t duty){
+	if((motorDirection != MOTOR_FLAP_OPEN && motorDirection != MOTOR_FLAP_CLOSE && motorDirection != MOTOR_FLAP_BOTH_DIRECTIONS) || duty < 0 || duty > 100)
+		return;
+
+	switch(motorDirection){
+	case MOTOR_FLAP_OPEN:
+		TIM4->CCR4 = 0;
+		TIM4->CCR3 = (uint32_t)(MAX_TIMER_PWM * ((float)duty/100));
+		break;
+	case MOTOR_FLAP_CLOSE:
+		TIM4->CCR3 = 0;
+		TIM4->CCR4 = (uint32_t)(MAX_TIMER_PWM * ((float)duty/100));
+		break;
+	case MOTOR_FLAP_BOTH_DIRECTIONS:
+		TIM4->CCR3 = 0;
+		TIM4->CCR4 = 0;
+	}
+}
+
 void stopMotor(){
-	digitalWrite(MOTOR_FLAP_OPEN, LOW);
-	digitalWrite(MOTOR_FLAP_CLOSE, LOW);
+	setDutyCycle(MOTOR_FLAP_BOTH_DIRECTIONS, 0);
+
 	// Reset motorCtrl state
 	flap.motorIsRuning = false;
 
@@ -99,14 +119,6 @@ void stopMotor(){
 		else if(flap.actuallyStateFlap == FLAP_CLOSING)
 			flap.actuallyStateFlap = FLAP_CLOSED;
 	}
-}
-
-bool safetyTest(){
-	if(digitalRead(MOTOR_FLAP_OPEN) == HIGH && digitalRead(MOTOR_FLAP_CLOSE) == HIGH){
-		error.safetyTest = true;
-		return true;
-	}
-	return false;
 }
 
 void measureMotorOperationTime(){

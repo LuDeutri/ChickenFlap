@@ -1,7 +1,6 @@
 #include "display.h"
 
 void display_init(){
-	digitalWrite(DISPLAY_ENABLE, HIGH);
 	display.displayPage = DISPLAY_HOME;
 	display.menuSelect = MENU_SELECT_WATCH;
 	display.timerSelect = TIMER_SELECT_NONE;
