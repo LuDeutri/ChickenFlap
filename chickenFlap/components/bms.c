@@ -1,5 +1,9 @@
 #include "bms.h"
 
+bms_t bms;
+uint8_t loopRound;
+uint32_t tmpSum;
+
 void bms_init(){
 	bms.batteryCapapcityPercentage = 0;
 	bms.batteryVoltage = 0;

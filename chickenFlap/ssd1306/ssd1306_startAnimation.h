@@ -26,7 +26,7 @@ typedef struct{
 	util_time_t animationStartTime;
 	bool drawHeartFinished;
 } startAnimation_t;
-startAnimation_t startAnimation;
+extern startAnimation_t startAnimation;
 
 typedef struct{
 	uint8_t tableHeight;
@@ -38,11 +38,11 @@ typedef struct{
 	int8_t buildDirection; // 1: build from top to bottom, -1: build from bottom to top
 } pictureDef_t;
 
-pictureDef_t heartDef;
-pictureDef_t chickenStandardDef;
-pictureDef_t chickenStrechedDef;
-pictureDef_t chickenFlapOpenedDef;
-pictureDef_t chickenFlapClosedDef;
+extern pictureDef_t heartDef;
+extern pictureDef_t chickenStandardDef;
+extern pictureDef_t chickenStrechedDef;
+extern pictureDef_t chickenFlapOpenedDef;
+extern pictureDef_t chickenFlapClosedDef;
 
 void ssd1306StartAnimation_init();
 void ssd1306StartAnimation();

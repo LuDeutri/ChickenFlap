@@ -1,5 +1,8 @@
 #include "flap.h"
 
+flap_t flap;
+util_time_t motorStartingTime;
+
 void flap_init(){
 	motorStartingTime = 0;
 	flap.motorIsRuning = false;
@@ -11,9 +14,9 @@ void flap_init(){
 	flap.motorEnable = true;
 	flap.motorButtonCtrlTime = 0;
 	flap.lastTimeMotorRuns = 0;
+	flap.motorSpeed = 0;
 
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 }
 
 void openFlap() {
@@ -88,7 +91,7 @@ void motorCtrl(uint8_t direction) {
 }
 
 void setDutyCycle(uint8_t motorDirection, uint8_t duty){
-	if((motorDirection != MOTOR_FLAP_OPEN && motorDirection != MOTOR_FLAP_CLOSE && motorDirection != MOTOR_FLAP_BOTH_DIRECTIONS) || duty < 0 || duty > 100)
+	/*if((motorDirection != MOTOR_FLAP_OPEN && motorDirection != MOTOR_FLAP_CLOSE && motorDirection != MOTOR_FLAP_BOTH_DIRECTIONS) || duty < 0 || duty > 100)
 		return;
 
 	switch(motorDirection){
@@ -103,11 +106,11 @@ void setDutyCycle(uint8_t motorDirection, uint8_t duty){
 	case MOTOR_FLAP_BOTH_DIRECTIONS:
 		TIM4->CCR3 = 0;
 		TIM4->CCR4 = 0;
-	}
+	}*/
 }
 
 void stopMotor(){
-	setDutyCycle(MOTOR_FLAP_BOTH_DIRECTIONS, 0);
+	//setDutyCycle(MOTOR_FLAP_BOTH_DIRECTIONS, 0);
 
 	// Reset motorCtrl state
 	flap.motorIsRuning = false;
@@ -130,4 +133,14 @@ void measureMotorOperationTime(){
 	if(flap.motorIsRuning){
 		flap.motorOperationTime = flap.motorRunningTime;
 	}
+}
+
+void setMotorSpeed(){
+	// Value is only adjustable if the value is screend on the lcd screen
+	if(display.displayPage != DISPLAY_CONFIG_MOTORSPEED)
+		return;
+
+	float raw = mapADCVoltage(ADC_MOTORSPEED, ADC_VREF);
+	if(raw == 0) flap.motorSpeed = 0;
+	else flap.motorSpeed = (uint8_t)(raw/ADC_VREF*100);
 }

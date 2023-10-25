@@ -1,5 +1,16 @@
 #include "error.h"
 
+error_t error;
+warning_t warning;
+err_delay_t errTimerTimes;
+err_delay_t errDisplayInit;
+err_delay_t warnNoBatteryData;
+err_delay_t errBatteryEmpty;
+err_delay_t warnBatteryLow;
+
+
+
+
 void error_init(){
 	error.stateMachine = false;
 	error.motorMaxRunningTime = false;
@@ -7,6 +18,7 @@ void error_init(){
 	error.timerTimes = false;
 	error.displayInit = false;
 	error.emptyBattery = false;
+	error.watchRTCbroken = false;
 	error.timeNotificationShown = 0;
 	strcpy(error.errorDescription, "");
 
@@ -46,7 +58,7 @@ void error_update(){
 }
 
 void checkAllErrors(){
-	if(error.stateMachine || error.motorMaxRunningTime || error.safetyTest || error.timerTimes || error.displayInit || error.emptyBattery){
+	if(error.stateMachine || error.motorMaxRunningTime || error.safetyTest || error.timerTimes || error.displayInit || error.emptyBattery || error.watchRTCbroken){
 		nextState(STATE_ERROR);
 		// Show error on the display
 		showNotificationWindow();
@@ -70,16 +82,16 @@ void setMotorEnable(){
 void checkTimerTimes(){
 	// tmpBool is true if both timer actions are activated and the times are the same
 	bool tmpBool = timer.timerState == TIMER_ACTIVE
-					&& timer.closeFlapTime_Dec_H == timer.openFlapTime_Dec_H
-					&& timer.closeFlapTime_One_H == timer.openFlapTime_One_H
-					&& timer.closeFlapTime_Dec_M == timer.openFlapTime_Dec_M
-					&& timer.closeFlapTime_One_M == timer.openFlapTime_One_M;
+					&& timer.closeFlapTime_hour == timer.openFlapTime_hour
+					&& timer.closeFlapTime_minute == timer.openFlapTime_minute;
 
 	if(error_delay(&errTimerTimes, tmpBool, TIMEOUT_ERROR_TIMER_TIMES))
 		error.timerTimes = true;
 
 	if(tmpBool && !error.timerTimes)
 		warning.timerTimes = true;
+	else if(!error.timerTimes) // delet warning if failure is fixed
+		warning.timerTimes = false;
 	else if(error.timerTimes)
 		warning.timerTimes = false;
 }
@@ -130,6 +142,8 @@ void showNotificationWindow(){
 	else stop = false;
 	if(!error.timerTimes || (error.timerTimes && error.notifications[ERROR_TIMER_TIMES])) stop &= true;
 	else stop = false;
+	if(!error.watchRTCbroken || (error.watchRTCbroken && error.notifications[ERROR_RTC])) stop &= true;
+	else stop = false;
 	if(!error.displayInit || (error.displayInit && error.notifications[ERROR_DISPLAY_INIT])) stop &= true;
 	else stop = false;
 	if(!error.emptyBattery || (error.emptyBattery && error.notifications[ERROR_EMPTY_BATTERY])) stop &= true;
@@ -156,7 +170,7 @@ void showNotificationWindow(){
 	ssd1306_Fill(Black);
 
 	// Set headline and description (error or warning)
-	char headline[] = "";
+	char headline[8] = "";
 	if(errorNotific)
 		strcat(headline, "Error");
 	else
@@ -216,6 +230,8 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Sofware Fehler/erkannt. Beide/MOSFET`s sind/gleichzeitig aktiv");
 		else if(error.timerTimes)
 			strcat(error.errorDescription, "Timer oeffnen und/schliessen Zeit/duerfen nicht/gleich sein./Neustart notwendig.");
+		else if(error.watchRTCbroken)
+			strcat(error.errorDescription, "Uhrzeit kalibrierung nicht möglich.");
 		else if(error.displayInit)
 			strcat(error.errorDescription, "Display antwortet/nicht.");
 		else if(error.emptyBattery)
@@ -245,6 +261,8 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Sofware error/detected./Both MOSFET´s were/switched on at the/same time.");
 		else if(error.timerTimes)
 			strcat(error.errorDescription, "Timer Open and/closing time must/not be the same/Flap is deactivated./Restart the flap.");
+		else if(error.watchRTCbroken)
+			strcat(error.errorDescription, "Watch not working.");
 		else if(error.displayInit)
 			strcat(error.errorDescription, "Hardware error/detected./Display does not/initialize.");
 		else if(error.emptyBattery)
@@ -271,11 +289,13 @@ void setNotificationShown(){
 	else if(error.motorMaxRunningTime && !error.notifications[ERROR_MOTOR_MAX_RUNNING_TIME])error.notifications[ERROR_MOTOR_MAX_RUNNING_TIME] = true;
 	else if(error.safetyTest && !error.notifications[ERROR_SAFETY_TEST])					error.notifications[ERROR_SAFETY_TEST] = true;
 	else if(error.timerTimes && !error.notifications[ERROR_TIMER_TIMES]) 					error.notifications[ERROR_TIMER_TIMES] = true;
+	else if(error.watchRTCbroken && !error.notifications[ERROR_RTC])						error.notifications[ERROR_RTC] = true;
 	else if(error.displayInit && !error.notifications[ERROR_DISPLAY_INIT]) 					error.notifications[ERROR_DISPLAY_INIT] = true;
 	else if(error.emptyBattery && !error.notifications[ERROR_EMPTY_BATTERY]) 				error.notifications[ERROR_EMPTY_BATTERY] = true;
 	else if(warning.lowBattery && !error.notifications[WARNING_LOW_BATTERY]) 				error.notifications[WARNING_LOW_BATTERY] = true;
 	else if(warning.noBatteryData && !error.notifications[WARNING_NO_BATTERY_DATA])			error.notifications[WARNING_NO_BATTERY_DATA] = true;
 	else if(warning.startAnimation && !error.notifications[WARNING_START_ANIMATION]) 		error.notifications[WARNING_START_ANIMATION] = true;
+	else if(warning.timerTimes && !error.notifications[WARNING_TIMER_TIMES])				error.notifications[WARNING_TIMER_TIMES] = true;
 	else error.timeNotificationShown = 0;
 
 	for(uint8_t i; i<sizeof(error.notifications)/sizeof(error.notifications[0]); i++){
@@ -364,4 +384,10 @@ void errorTest(){
 		error.emptyBattery = 0;
 		error.stateMachine = 0;
 	}
+
+	// Display RTC error
+		if(millis() > 200000 && millis() < 22000)
+			error.watchRTCbroken = 1;
+		else if (millis() > 22100)
+			error.watchRTCbroken = 0;
 }

@@ -17,8 +17,7 @@ typedef struct{
 	uint8_t batteryCapapcityPercentage;
 	uint16_t batteryVoltage;
 } bms_t;
-
-bms_t bms;
+extern bms_t bms;
 
 static const uint16_t batteryCapacity[22] = {
 	0x00U,	0x19U,	0x57U,	0x96U,	//1.55V, 1.5V, 1.45V, 1.4V
@@ -30,8 +29,8 @@ static const uint16_t batteryCapacity[22] = {
 	};
 
 // Loop values used to calculate an averaged battery capacity value
-uint8_t loopRound;
-uint32_t tmpSum;
+extern uint8_t loopRound;
+extern uint32_t tmpSum;
 
 void bms_init();
 void bms_update();

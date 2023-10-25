@@ -37,10 +37,11 @@ typedef struct{
 	bool motorWaitForButton; 		// Used if the motor is stoped by the button Flap_CTRL
 	util_time_t lastTimeMotorRuns;
 	lowSideDriverConfig_t mtrDriverConfig;
+	uint8_t motorSpeed; 		// In Percentage 0-100% adjusted via potentiometer
 } flap_t;
-flap_t flap;
+extern flap_t flap;
 
-util_time_t motorStartingTime;
+extern util_time_t motorStartingTime;
 
 void flap_init();
 
@@ -84,5 +85,11 @@ void setDutyCycle(uint8_t motorDirection, uint8_t duty);
  * With the FLAP_CTRL_BTTN starts the timer and with pushing this button again it stops and safe the time for later opening or closing the flap.
  */
 void measureMotorOperationTime();
+
+/*
+ * The speed of the motor (dutycyle of the pwm switches) can be adjusted via an potentiometer on the pcb. This method reads it out
+ * and safes the speed in percentage in flap.motorSpeed struct
+ */
+void setMotorSpeed();
 
 #endif

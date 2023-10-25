@@ -1,11 +1,13 @@
 #include "stateMachine.h"
 
+stateMachine_t stateMachine;
+
 void stateMachine_init(){
 	stateMachine.state = STATE_INIT;
 	stateMachine.lastState = STATE_INIT;
 	stateMachine.firstTimeInState = 0;
 	stateMachine.errLED = LOW; 		// Error LED goes on for a functionality test at startup
-	digitalWrite(DEBUG_LED, HIGH);	// Debug LED off, if flag is not set, debug LED stays off
+	digitalWrite(DEBUG_LED_GREEN, HIGH);	// Debug LED off, if flag is not set, debug LED stays off
 }
 
 void stateMachine_update(){
@@ -79,7 +81,7 @@ void nextState(state_t nextState){
 	if (stateMachine.state == nextState)
 		return;
 
-	dartUART_formatLine(UART_LOG, "[%d ms] state change: %d -> %d", millis(), stateMachine.state, (int)nextState);
+	dartUART_formatLine(3, "[%d ms] state change: %d -> %d", millis(), stateMachine.state, (int)nextState);
 	if (stateMachine.state != STATE_SLEEP)
 		stateMachine.lastState = stateMachine.state;
 	stateMachine.state = nextState;

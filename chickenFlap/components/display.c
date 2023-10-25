@@ -1,5 +1,7 @@
 #include "display.h"
 
+display_t display;
+
 void display_init(){
 	display.displayPage = DISPLAY_HOME;
 	display.menuSelect = MENU_SELECT_WATCH;
@@ -88,28 +90,16 @@ void displayStateMachine() {
 
 	char strTimerTime[20] = "";
 	char strTimerOpenTimeHour[7] = "";
-	sprintf(strTimerOpenTimeHour, "%d%d",
-		timer.openFlapTime_Dec_H,
-		timer.openFlapTime_One_H
-	);
+	sprintf(strTimerOpenTimeHour, "%02d", timer.openFlapTime_hour);
 
 	char strTimerOpenTimeMinutes[7] = "";
-	sprintf(strTimerOpenTimeMinutes, "%d%d",
-		timer.openFlapTime_Dec_M,
-		timer.openFlapTime_One_M
-	);
+	sprintf(strTimerOpenTimeMinutes, "%02d", timer.openFlapTime_minute);
 
 	char strTimerCloseTimeHour[7] = "";
-	sprintf(strTimerCloseTimeHour, "%d%d",
-		timer.closeFlapTime_Dec_H,
-		timer.closeFlapTime_One_H
-	);
+	sprintf(strTimerCloseTimeHour, "%02d", timer.closeFlapTime_hour);
 
 	char strTimerCloseTimeMinutes[7] = "";
-	sprintf(strTimerCloseTimeMinutes, "%d%d",
-		timer.closeFlapTime_Dec_M,
-		timer.closeFlapTime_One_M
-	);
+	sprintf(strTimerCloseTimeMinutes, "%02d", timer.closeFlapTime_minute);
 
 	// If only opening function of the timer is active
 	if(timer.timerState == TIMER_ONLY_OPEN){
@@ -236,15 +226,13 @@ void displayStateMachine() {
 	// Variables used in the switch block
 	char strWatchTime[20] = "";
 	char strWatchTimeHours[7] ="";
-	sprintf(strWatchTimeHours,"%d%d",
-		watch.watchDecHour,
-		watch.watchOneHour
+	sprintf(strWatchTimeHours,"%02d",
+		watch.hour
 	);
 
 	char strWatchTimeMinutes[7] = "";
-	sprintf(strWatchTimeMinutes,"%d%d",
-		watch.watchDecMinute,
-		watch.watchOneMinute
+	sprintf(strWatchTimeMinutes,"%02d",
+		watch.minute
 	);
 
 	char strMotorOperationTime[20] = "";
@@ -258,10 +246,14 @@ void displayStateMachine() {
 		(int)((flap.motorOperationTime/100) % 10)
 	);
 
+	char strMotorSpeed[20] ="";
+	char strMotorSpeedPercentage[5] = "";
+	sprintf(strMotorSpeedPercentage,"%d", flap.motorSpeed);
+
 	// Add back and enter block at the bottom of the screen
 	if(display.displayPage >= DISPLAY_MENU){
 		addBlockDownLeft("Back");
-		if (display.displayPage != DISPLAY_CONFIG_IN_USE)
+		if (display.displayPage != DISPLAY_CONFIG_IN_USE && display.displayPage != DISPLAY_CONFIG_MOTORSPEED)
 		addBlockDownRight("Enter");
 	}
 
@@ -489,6 +481,26 @@ void displayStateMachine() {
 		ssd1306_SetCursor(76,41);
 		ssd1306_WriteString("SetTime", Font_6x8, White);
 		break;
+	case DISPLAY_CONFIG_PAGE_2:
+		// Mark actually chosen action
+		if (display.configSelect == CONFIG_SELECT_MOTORSPEED)
+			ssd1306_DrawRectangle(4, 37, 70, 51, White);
+		//TODO Place for more configurations
+
+		// Explanation
+		ssd1306_SetCursor(25,29);
+		#ifdef ENABLE_GERMAN_LANGUAGE
+			ssd1306_WriteString("Set Motorzeit", Font_6x8, White);
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Set motor time", Font_6x8, White);
+		#endif
+
+		// Set motorspeed block
+		ssd1306_DrawRectangle(6, 39, 68, 49, White);
+		ssd1306_SetCursor(8,41);
+		ssd1306_WriteString("Motorspeed", Font_6x8, White);
+		break;
 	case DISPLAY_CONFIG_IN_USE:
 		// Explanation
 		ssd1306_SetCursor(5,29);
@@ -533,6 +545,21 @@ void displayStateMachine() {
 			ssd1306_WriteString("Seconds", Font_6x8, White);
 		#endif
 		break;
+	case DISPLAY_CONFIG_MOTORSPEED:
+		// Shows motorspeed in percentage adjusted via potentiometer on the pcb
+		#ifdef ENABLE_GERMAN_LANGUAGE
+		strcat(strMotorSpeed, "Motorgeschwindigkeit:");
+		#endif
+		#ifdef ENABLE_ENGLISH_LANGUAGE
+		strcat(strMotorSpeed, "Motorspeed:");
+		#endif
+
+		strcat(strMotorSpeed, strMotorSpeedPercentage);
+		strcat(strMotorSpeed, "%");
+
+		ssd1306_SetCursor(15,35);
+		ssd1306_WriteString(strMotorSpeed, Font_7x10, White);
+		break;
 	default:
 		// Do nothing
 		break;
@@ -560,10 +587,10 @@ void displayNavigation(){
 		case DISPLAY_TIMER_CLOSING ... DISPLAY_TIMER_OPENING:
 			nextDisplayPage(DISPLAY_TIMER);
 			break;
-		case DISPLAY_CONFIG:
+		case DISPLAY_CONFIG ... DISPLAY_CONFIG_PAGE_2:
 			nextDisplayPage(DISPLAY_MENU);
 			break;
-		case DISPLAY_CONFIG_IN_USE ... DISPLAY_CONFIG_ADJUST_TIME:
+		case DISPLAY_CONFIG_IN_USE ... DISPLAY_CONFIG_MOTORSPEED:
 			nextDisplayPage(DISPLAY_CONFIG);
 			break;
 		default:
@@ -618,14 +645,12 @@ void displayNavigation(){
 			// End set watch digits if minutes is selected and Enter is pushed
 			else if (display.watchSelect == WATCH_SELECT_MINUTE){
 				display.watchSelect = WATCH_SELECT_NONE;
-				resetSecCounter();
 			}
 		}
 
 		// Set watch digits
 		// Set digits with the right and left button
 		else if(display.watchSelect > WATCH_SELECT_NONE && (button.buttonRight || button.buttonLeft)){
-
 			// Hour digits
 			if (display.watchSelect == WATCH_SELECT_HOUR){
 
@@ -633,44 +658,25 @@ void displayNavigation(){
 				if (millis() > button.firstTimeButtonPressed + PRESSED_BUTTON_TIME_FOR_FAST_NUMBER_RISE) {
 					if (millis() % 400 > 200) {
 
-						// Increase if right button is pressed
-						if (button.buttonRight)
-							watch.watchOneHour++;
+						// Increase if right button is pressed (not above 23)
+						if (button.buttonRight && watch.hour != 23)
+							watch.hour++;
 
-						// Decrease if left button is pressed
-						else if(watch.watchOneHour != 0)
-							watch.watchOneHour--;
-						else if(watch.watchDecHour > 0){
-							watch.watchDecHour--;
-							watch.watchOneHour = 9;
-						}
+						// Decrease if left button is pressed (only if not already 0)
+						else if(watch.hour != 0)
+							watch.hour--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						watch.watchOneHour++;
+					if (button.buttonRight && watch.hour != 23)
+						watch.hour++;
 
-					// Decrease if left button is pressed
-					else if(watch.watchOneHour != 0)
-						watch.watchOneHour--;
-					else if(watch.watchDecHour > 0){
-						watch.watchDecHour--;
-						watch.watchOneHour = 9;
-					}
-				}
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (watch.watchOneHour >= 10) {
-					watch.watchDecHour++;
-					watch.watchOneHour = 0;
-				}
-
-				// Reset if dec: 2 and one: 4 is reached -->24:XX --> 00:XX
-				if (watch.watchDecHour >= 2 && watch.watchOneHour >= 4) {
-					watch.watchDecHour= 0;
-					watch.watchOneHour = 0;
+					// Decrease if left button is pressed (only if not already 0)
+					else if(watch.hour != 0)
+						watch.hour--;
 				}
 
 			// Minute digits
@@ -680,45 +686,28 @@ void displayNavigation(){
 					if (millis() % 100 > 50) {
 
 						// Increase if right button is pressed
-						if (button.buttonRight)
-							watch.watchOneMinute++;
+						if (button.buttonRight && watch.minute != 59)
+							watch.minute++;
 
 						// Decrease if left button is pressed
-						else if(watch.watchOneMinute != 0)
-							watch.watchOneMinute--;
-						else if(watch.watchDecMinute > 0){
-							watch.watchDecMinute--;
-							watch.watchOneMinute = 9;
-						}
+						else if(watch.minute != 0)
+							watch.minute--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						watch.watchOneMinute++;
+					if (button.buttonRight && watch.minute != 59)
+						watch.minute++;
 
 					// Decrease if left button is pressed
-					else if(watch.watchOneMinute != 0)
-						watch.watchOneMinute--;
-					else if(watch.watchDecMinute > 0){
-						watch.watchDecMinute--;
-						watch.watchOneMinute = 9;
-					}
-				}
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (watch.watchOneMinute >= 10) {
-					watch.watchDecMinute++;
-					watch.watchOneMinute = 0;
-				}
-
-				// Reset if dec: 6 and one: 0 is reached -->XX:60 --> XX:00
-				if (watch.watchDecMinute >= 6 && watch.watchOneMinute >= 0) {
-					watch.watchDecMinute= 0;
-					watch.watchOneMinute = 0;
+					else if(watch.minute != 0)
+						watch.minute--;
 				}
 			}
+			// Set rtc time
+			watch_setTime(watch.hour, watch.minute, 0);
 		}
 		break;
 	case DISPLAY_TIMER:
@@ -856,43 +845,24 @@ void displayNavigation(){
 					if (millis() % 400 > 200) {
 
 						// Increase if right button is pressed
-						if (button.buttonRight)
-							timer.closeFlapTime_One_H++;
+						if (button.buttonRight && timer.closeFlapTime_hour != 23)
+							timer.closeFlapTime_hour++;
 
 						// Decrease if left button is pressed
-						else if(timer.closeFlapTime_One_H != 0)
-							timer.closeFlapTime_One_H--;
-						else if (timer.closeFlapTime_Dec_H > 0){
-							timer.closeFlapTime_Dec_H--;
-							timer.closeFlapTime_One_H = 9;
-						}
+						else if(timer.closeFlapTime_hour != 0)
+							timer.closeFlapTime_hour--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						timer.closeFlapTime_One_H++;
+					if (button.buttonRight && timer.closeFlapTime_hour != 23)
+						timer.closeFlapTime_hour++;
 
 					// Decrease if left button is pressed
-					else if(timer.closeFlapTime_One_H != 0)
-						timer.closeFlapTime_One_H--;
-					else if (timer.closeFlapTime_Dec_H > 0){
-						timer.closeFlapTime_Dec_H--;
-						timer.closeFlapTime_One_H = 9;
-					}
-				}
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (timer.closeFlapTime_One_H >= 10) {
-					timer.closeFlapTime_Dec_H++;
-					timer.closeFlapTime_One_H = 0;
-				}
-
-				// Reset if dec: 2 and one: 4 is reached -->24:XX --> 00:XX
-				if (timer.closeFlapTime_Dec_H >= 2 && timer.closeFlapTime_One_H >= 4) {
-					timer.closeFlapTime_Dec_H = 0;
-					timer.closeFlapTime_One_H = 0;
+					else if(timer.closeFlapTime_hour != 0)
+						timer.closeFlapTime_hour--;
 				}
 
 			// Minute digits
@@ -902,44 +872,24 @@ void displayNavigation(){
 					if (millis() % 100 > 50) {
 
 						// Increase if right button is pressed
-						if (button.buttonRight)
-							timer.closeFlapTime_One_M++;
+						if (button.buttonRight && timer.closeFlapTime_minute != 60)
+							timer.closeFlapTime_minute++;
 
 						// Decrease if left button is pressed
-						else if(timer.closeFlapTime_One_M != 0)
-							timer.closeFlapTime_One_M--;
-						else if (timer.closeFlapTime_Dec_M > 0){
-							timer.closeFlapTime_Dec_M--;
-							timer.closeFlapTime_One_M = 9;
-						}
+						else if(timer.closeFlapTime_minute != 0)
+							timer.closeFlapTime_minute--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else if (millis() % 1000 > 500) {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						timer.closeFlapTime_One_M++;
+					if (button.buttonRight && timer.closeFlapTime_minute != 60)
+						timer.closeFlapTime_minute++;
 
 					// Decrease if left button is pressed
-					else if(timer.closeFlapTime_One_M != 0)
-						timer.closeFlapTime_One_M--;
-					else if (timer.closeFlapTime_Dec_M > 0){
-						timer.closeFlapTime_Dec_M--;
-						timer.closeFlapTime_One_M = 9;
-					}
-				}
-
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (timer.closeFlapTime_One_M >= 10) {
-					timer.closeFlapTime_Dec_M++;
-					timer.closeFlapTime_One_M = 0;
-				}
-
-				// Reset if dec: 2 and one: 4 is reached -->XX:60 --> XX:00
-				if (timer.closeFlapTime_Dec_M >= 6 && timer.closeFlapTime_One_M >= 0) {
-					timer.closeFlapTime_Dec_M = 0;
-					timer.closeFlapTime_One_M = 0;
+					else if(timer.closeFlapTime_minute != 0)
+						timer.closeFlapTime_minute--;
 				}
 			}
 		}
@@ -958,7 +908,7 @@ void displayNavigation(){
 				display.timerTimeSelect = TIMER_TIME_SELECT_NONE;
 		}
 
-		// Set timer closing digits
+		// Set timer opening digits
 		// Set digits with the right and left button
 		else if(display.timerTimeSelect > TIMER_TIME_SELECT_NONE && (button.buttonRight || button.buttonLeft)){
 
@@ -970,43 +920,24 @@ void displayNavigation(){
 					if (millis() % 400 > 200) {
 
 						// Increase if right button is pressed
-						if (button.buttonRight)
-							timer.openFlapTime_One_H++;
+						if (button.buttonRight && timer.openFlapTime_hour != 23)
+							timer.openFlapTime_hour++;
 
 						// Decrease if left button is pressed
-						else if(timer.openFlapTime_One_H != 0)
-							timer.openFlapTime_One_H--;
-						else if (timer.openFlapTime_Dec_H > 0){
-							timer.openFlapTime_Dec_H--;
-							timer.openFlapTime_One_H = 9;
-						}
+						else if(timer.openFlapTime_hour != 0)
+							timer.openFlapTime_hour--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						timer.openFlapTime_One_H++;
+					if (button.buttonRight && timer.openFlapTime_hour != 23)
+						timer.openFlapTime_hour++;
 
 					// Decrease if left button is pressed
-					else if(timer.openFlapTime_One_H != 0)
-						timer.openFlapTime_One_H--;
-					else if (timer.openFlapTime_Dec_H > 0){
-						timer.openFlapTime_Dec_H--;
-						timer.openFlapTime_One_H = 9;
-					}
-				}
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (timer.openFlapTime_One_H >= 10) {
-					timer.openFlapTime_Dec_H++;
-					timer.openFlapTime_One_H = 0;
-				}
-
-				// Reset if dec: 2 and one: 4 is reached -->24:XX --> 00:XX
-				if (timer.openFlapTime_Dec_H >= 2 && timer.openFlapTime_One_H >= 4) {
-					timer.openFlapTime_Dec_H = 0;
-					timer.openFlapTime_One_H = 0;
+					else if(timer.openFlapTime_hour != 0)
+						timer.openFlapTime_hour--;
 				}
 
 			// Minute digits
@@ -1016,44 +947,24 @@ void displayNavigation(){
 					if (millis() % 100 > 50) {
 
 						// Increase if right button is pressed
-						if (button.buttonRight)
-							timer.openFlapTime_One_M++;
+						if (button.buttonRight && timer.openFlapTime_minute != 59)
+							timer.openFlapTime_minute++;
 
 						// Decrease if left button is pressed
-						else if(timer.openFlapTime_One_M != 0)
-							timer.openFlapTime_One_M--;
-						else if (timer.openFlapTime_Dec_M > 0){
-							timer.openFlapTime_Dec_M--;
-							timer.openFlapTime_One_M = 9;
-						}
+						else if(timer.openFlapTime_minute != 0)
+							timer.openFlapTime_minute--;
 					}
 
 				// Normal rising/sinking of digits before x pressed seconds
 				} else {
 
 					// Increase if right button is pressed
-					if (button.buttonRight)
-						timer.openFlapTime_One_M++;
+					if (button.buttonRight && timer.openFlapTime_minute != 59)
+						timer.openFlapTime_minute++;
 
 					// Decrease if left button is pressed
-					else if(timer.openFlapTime_One_M != 0)
-						timer.openFlapTime_One_M--;
-					else if (timer.openFlapTime_Dec_M > 0){
-						timer.openFlapTime_Dec_M--;
-						timer.openFlapTime_One_M = 9;
-					}
-				}
-
-				// Rise Dec digit if 10 ones are reached and set ones back to 0
-				if (timer.openFlapTime_One_M >= 10) {
-					timer.openFlapTime_Dec_M++;
-					timer.openFlapTime_One_M = 0;
-				}
-
-				// Reset if dec: 2 and one: 4 is reached -->XX:60 --> XX:00
-				if (timer.openFlapTime_Dec_M >= 6 && timer.openFlapTime_One_M >= 0) {
-					timer.openFlapTime_Dec_M = 0;
-					timer.openFlapTime_One_M = 0;
+					else if(timer.openFlapTime_minute != 0)
+						timer.openFlapTime_minute--;
 				}
 			}
 		}
@@ -1065,9 +976,11 @@ void displayNavigation(){
 			// Check for validity
 			if (display.configSelect >= CONFIG_SELECT_BLOCKS_NUMBER)
 				display.configSelect = CONFIG_SELECT_BLOCKS_NUMBER;
-			else
+			else {
 				// Increase if its all right
 				display.configSelect++;
+				if(display.configSelect > 1) nextDisplayPage(DISPLAY_CONFIG_PAGE_2);
+			}
 
 		// Decrease Selection
 		} else if (button.buttonLeft && button.onePingIfButtonPressed) {
@@ -1086,6 +999,36 @@ void displayNavigation(){
 				flap.motorOperationTimeSetted = false;
 			} else if (display.configSelect == CONFIG_SELECT_ADJUST_TIME && button.buttonMenuEnter && button.onePingIfButtonPressed)
 				nextDisplayPage(DISPLAY_CONFIG_ADJUST_TIME);
+			else if (display.configSelect == CONFIG_SELECT_MOTORSPEED && button.buttonMenuEnter && button.onePingIfButtonPressed)
+				nextDisplayPage(DISPLAY_CONFIG_MOTORSPEED);
+		}
+		break;
+	case DISPLAY_CONFIG_PAGE_2:
+		// Increase Selection
+		if (button.buttonRight && button.onePingIfButtonPressed) {
+
+			// Check for validity
+			if (display.configSelect >= CONFIG_SELECT_BLOCKS_NUMBER)
+				display.configSelect = CONFIG_SELECT_BLOCKS_NUMBER;
+			else
+				// Increase if its all right
+				display.configSelect++;
+
+		// Decrease Selection
+		} else if (button.buttonLeft && button.onePingIfButtonPressed) {
+			// Check for validity
+			if (display.configSelect <= 0)
+				display.configSelect = 0;
+			else {
+				// Decrease if its all right
+				display.configSelect--;
+				if(display.configSelect < 2) nextDisplayPage(DISPLAY_CONFIG);
+			}
+			// Switch to chosen Display Page with Enter
+		} else if (button.buttonMenuEnter && button.onePingIfButtonPressed){
+
+			if (display.configSelect == CONFIG_SELECT_MOTORSPEED)
+				nextDisplayPage(DISPLAY_CONFIG_MOTORSPEED);
 		}
 		break;
 	case DISPLAY_CONFIG_IN_USE:
@@ -1141,6 +1084,9 @@ void displayNavigation(){
 			}
 		}
 		break;
+	case DISPLAY_CONFIG_MOTORSPEED:
+		// Only back button
+		break;
 	default:
 		// Do nothing
 		break;
@@ -1154,7 +1100,8 @@ void nextDisplayPage(displayPage_t nextDisplayPage){
 	display.displayPage = nextDisplayPage;
 	display.menuSelect = 0;
 	display.timerSelect = 0;
-	display.configSelect = 0;
+	if(nextDisplayPage == DISPLAY_CONFIG_PAGE_2) display.configSelect = 2;
+	else display.configSelect = 0;
 	display.adjustTimeSelect = 0;
 }
 

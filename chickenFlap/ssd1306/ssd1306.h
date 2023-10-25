@@ -129,7 +129,7 @@ typedef struct {
 } SSD1306_t;
 
 // Screen object
-SSD1306_t SSD1306;
+extern SSD1306_t SSD1306;
 
 typedef struct {
     uint8_t x;

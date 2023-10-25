@@ -9,20 +9,17 @@
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
 typedef struct{
-	uint8_t watchDecHour;
-	uint8_t watchOneHour;
-	uint8_t watchDecMinute;
-	uint8_t watchOneMinute;
-	util_time_t watchTimer;
+	uint8_t hour;
+	uint8_t minute;
+	uint8_t second;
+	//util_time_t watchTimer;
 } watch_t;
-watch_t watch;
+extern watch_t watch;
 
-bool watchRestart;
 
 void watch_init();
 void watch_update();
 
-void resetSecCounter();
-
+void watch_setTime(uint8_t h, uint8_t m, uint8_t s);
 
 #endif

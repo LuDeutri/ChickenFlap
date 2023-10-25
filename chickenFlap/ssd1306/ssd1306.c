@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>  // For memcpy
 
+SSD1306_t SSD1306;
+
 #if defined(SSD1306_USE_I2C)
 
 void ssd1306_Reset(void) {
@@ -287,7 +289,7 @@ void ssd1306_Line(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, SSD1306_COLOR 
   ssd1306_DrawPixel(x2, y2, color);
     while((x1 != x2) || (y1 != y2))
     {
-    ssd1306_DrawPixel(x1, y1, color);
+	ssd1306_DrawPixel(x1, y1, color);
     error2 = error * 2;
     if(error2 > -deltaY)
     {

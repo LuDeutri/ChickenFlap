@@ -7,13 +7,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2023 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -28,7 +27,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
+#include "stm32f7xx_hal.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -60,26 +59,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DEBUG_LED_Pin GPIO_PIN_13
-#define DEBUG_LED_GPIO_Port GPIOC
-#define Button_Flap_Ctrl_Pin GPIO_PIN_0
-#define Button_Flap_Ctrl_GPIO_Port GPIOA
-#define Button_menu_enter_Pin GPIO_PIN_1
-#define Button_menu_enter_GPIO_Port GPIOA
-#define Button_right_Pin GPIO_PIN_2
-#define Button_right_GPIO_Port GPIOA
-#define Button_left_Pin GPIO_PIN_3
-#define Button_left_GPIO_Port GPIOA
-#define Display_enable_Pin GPIO_PIN_4
-#define Display_enable_GPIO_Port GPIOA
-#define Button_back_Pin GPIO_PIN_5
-#define Button_back_GPIO_Port GPIOA
-#define Button_NOT_USED_Pin GPIO_PIN_6
-#define Button_NOT_USED_GPIO_Port GPIOA
-#define ERROR_LED_Pin GPIO_PIN_7
-#define ERROR_LED_GPIO_Port GPIOA
-#define Battery_voltage_Pin GPIO_PIN_1
-#define Battery_voltage_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

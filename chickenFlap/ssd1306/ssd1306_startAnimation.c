@@ -1,5 +1,14 @@
 #include "ssd1306_startAnimation.h"
 
+
+startAnimation_t startAnimation;
+pictureDef_t heartDef;
+pictureDef_t chickenStandardDef;
+pictureDef_t chickenStrechedDef;
+pictureDef_t chickenFlapOpenedDef;
+pictureDef_t chickenFlapClosedDef;
+
+
 // 18 x 52
 static const uint8_t chickenFlapOpenedTable [] = {
 
@@ -285,7 +294,7 @@ void ssd1306StartAnimation_init(){
 	chickenFlapOpenedDef.displayUpdateWhileBuilding = false;
 	chickenFlapOpenedDef.buildDirection = -1;
 
-	chickenFlapClosedDef.tableHeight = 52;
+	chickenFlapClosedDef.tableHeight = 51;
 	chickenFlapClosedDef.tableWidth = 3;
 	chickenFlapClosedDef.pictureWidth = 18;
 	chickenFlapClosedDef.data = chickenFlapClosedTable;

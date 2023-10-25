@@ -21,7 +21,7 @@
 // Enable start animation movie scene
 #define SSD13006_START_ANIMATION_MOVIE_SCENE
 // Enable DEBUG LED
-//#define ENABLE_DEBUG_LED
+#define ENABLE_DEBUG_LED
 // Enable battery load status in the top right of the display, should only be defined, if an accumulator is used
 //#define ENABLE_BATTERY_LOAD_STATUS
 
@@ -85,16 +85,14 @@
 
 // ------------ Watch ------------
 // Default opening time --> 08:00 o'watch
-#define DEFAULT_OPEN_FLAP_TIME_DEC_H 0
-#define DEFAULT_OPEN_FLAP_TIME_ONE_H 8
-#define DEFAULT_OPEN_FLAP_TIME_DEC_MIN 0
-#define DEFAULT_OPEN_FLAP_TIME_ONE_MIN 0
+#define DEFAULT_OPEN_FLAP_TIME_HOUR 8
+#define DEFAULT_OPEN_FLAP_TIME_MINUTE 0
+
 
 // Default closing time --> 18:00 o'watch
-#define DEFAULT_CLOSE_FLAP_TIME_DEC_H 1
-#define DEFAULT_CLOSE_FLAP_TIME_ONE_H 8
-#define DEFAULT_CLOSE_FLAP_TIME_DEC_MIN 0
-#define DEFAULT_CLOSE_FLAP_TIME_ONE_MIN 0
+#define DEFAULT_CLOSE_FLAP_TIME_HOUR 18
+#define DEFAULT_CLOSE_FLAP_TIME_MINUTE 0
+
 
 // If the button is pressed longer than here given, the digits of the watch and the timer rise/sink faster when you set them, also used for the timer digits
 #define PRESSED_BUTTON_TIME_FOR_FAST_NUMBER_RISE 3000 //ms
@@ -104,6 +102,6 @@
 // Define the number of selection blocks in the menu / timer interface on the display. 0 to number-1 is a valid value
 #define MENU_SELECT_BLOCKS_NUMBER 2
 #define TIMER_SELECT_BLOCKS_NUMBER 6
-#define CONFIG_SELECT_BLOCKS_NUMBER 1
+#define CONFIG_SELECT_BLOCKS_NUMBER 2
 
 #endif

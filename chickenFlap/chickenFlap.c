@@ -1,7 +1,7 @@
 #include "chickenFlap.h"
 
 void chickenFlap_main(){
-	digitalWrite(DISPLAY_ENABLE, LOW);
+	digitalWrite(DISPLAY_RST, LOW);
 	chickenFlap_init();
 	while(1)
 		chickenFlap_update();
@@ -15,7 +15,7 @@ void chickenFlap_init(){
 	dartI2C_init();
 
 	delayMillis(1000);
-	digitalWrite(DISPLAY_ENABLE, HIGH);
+	digitalWrite(DISPLAY_RST, HIGH);
 
 	button_init();
 	display_init();
@@ -34,7 +34,6 @@ void chickenFlap_update(){
 	dartUART_update();
 	dartI2C_update();
 
-
 	ssd1306StartAnimation();
 	// Wait with normal operation until the start animation is finished
 	if(startAnimation.enable)
@@ -47,8 +46,9 @@ void chickenFlap_update(){
 		button_update();
 		display_update();
 		error_update();
-	}
 
+		setMotorSpeed();
+	}
 	// Update error LED
 	if (stateMachine.state == STATE_ERROR)
 		digitalWrite(ERROR_LED, LOW);					// Error LED on
@@ -58,27 +58,50 @@ void chickenFlap_update(){
 		if (millis()>3000)
 			digitalWrite(ERROR_LED, HIGH);				// Error LED after start sequence off
 	}
-	digitalWrite(DEBUG_LED, HIGH); // LED off
 
 	// Update debug LED
 	#ifdef ENABLE_DEBUG_LED
-		if (stateMachine.state==STATE_ERROR)
-			digitalWrite(DEBUG_LED, millis() % 300 > 150);
-		 else if (stateMachine.state == STATE_INIT)
-			digitalWrite(DEBUG_LED, millis() % 500 > 250);
-		 else
-			digitalWrite(DEBUG_LED, millis() % 3000 > 1500);
+		util_time_t tmp = millis();
+		if(millis() < 7000) {
+			// LED start animation
+			digitalWrite(DEBUG_LED_BLUE, tmp > 1500 && tmp < 4500);
+			digitalWrite(DEBUG_LED_GREEN, tmp > 2000 && tmp < 5000);
+			digitalWrite(DEBUG_LED_YELLOW, tmp > 2500 && tmp < 5500);
+			digitalWrite(DEBUG_LED_ORANGE, tmp > 3500 && tmp < 6000);
+			digitalWrite(DEBUG_LED_RED, tmp > 4000 && tmp < 6500);
+		} else if (stateMachine.state==STATE_ERROR){
+			// LED error state
+			digitalWrite(DEBUG_LED_BLUE, 0);
+			digitalWrite(DEBUG_LED_GREEN, 0);
+			digitalWrite(DEBUG_LED_YELLOW, 0);
+			digitalWrite(DEBUG_LED_ORANGE, 0);
+			digitalWrite(DEBUG_LED_RED, millis() % 1000 > 500);
+		} else if (stateMachine.state == STATE_INIT){
+			//LED init state
+			digitalWrite(DEBUG_LED_BLUE, 1);
+			digitalWrite(DEBUG_LED_GREEN, 0);
+			digitalWrite(DEBUG_LED_YELLOW, 1);
+			digitalWrite(DEBUG_LED_ORANGE, millis() % 500 > 1000);
+			digitalWrite(DEBUG_LED_RED, 0);
+		 } else {
+			// LED normal operation state
+			digitalWrite(DEBUG_LED_BLUE, tmp % 4000 > 0);
+			digitalWrite(DEBUG_LED_GREEN, tmp % 4000 > 1000);
+			digitalWrite(DEBUG_LED_YELLOW, tmp % 4000 > 2000);
+			digitalWrite(DEBUG_LED_ORANGE, tmp % 4000 > 3000);
+			digitalWrite(DEBUG_LED_RED, 0);
+		 }
 	#endif
 
 }
 
 void i2cTest(){
-	dartUART_writeLine(UART_LOG, "Scan I2C bus: ");
+	dartUART_writeLine(3, "Scan I2C bus: ");
 	for (int i = 0; i < I2C_MAX_SLAVE_COUNT; i++) {
 		if (i2c_slave_ready(0, i))
-			dartUART_format(UART_LOG, "0x%x", i);
+			dartUART_format(3, "0x%x", i);
 		else
-			dartUART_write(UART_LOG, ".");
+			dartUART_write(3, ".");
 	}
-	dartUART_writeLine(UART_LOG, "");
+	dartUART_writeLine(3, "");
 }

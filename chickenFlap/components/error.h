@@ -32,6 +32,7 @@ typedef enum{
 	ERROR_TIMER_TIMES,
 	ERROR_DISPLAY_INIT,
 	ERROR_EMPTY_BATTERY,
+	ERROR_RTC,
 	WARNING_LOW_BATTERY,
 	WARNING_NO_BATTERY_DATA,
 	WARNING_START_ANIMATION,
@@ -45,11 +46,12 @@ typedef struct{
 	bool timerTimes;
 	bool displayInit;
 	bool emptyBattery;
+	bool watchRTCbroken;
 	char errorDescription[255];
-	bool notifications[10]; // Value is true if the error with the index, of the enum, was shown already
+	bool notifications[11]; // Value is true if the error with the index, of the enum, was shown already
 	util_time_t timeNotificationShown;
 }error_t;
-error_t error;
+extern error_t error;
 
 typedef struct{
 	bool overallWarning;
@@ -58,13 +60,13 @@ typedef struct{
 	bool startAnimation;
 	bool timerTimes;
 } warning_t;
-warning_t warning;
+extern warning_t warning;
 
-err_delay_t errTimerTimes;
-err_delay_t errDisplayInit;
-err_delay_t warnNoBatteryData;
-err_delay_t errBatteryEmpty;
-err_delay_t warnBatteryLow;
+extern err_delay_t errTimerTimes;
+extern err_delay_t errDisplayInit;
+extern err_delay_t warnNoBatteryData;
+extern err_delay_t errBatteryEmpty;
+extern err_delay_t warnBatteryLow;
 
 void error_init();
 void error_update();

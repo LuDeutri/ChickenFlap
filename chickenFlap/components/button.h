@@ -28,7 +28,7 @@ typedef struct{
 	bool buttonFlapCtrl;
 	bool buttonJoker; // not used
 } button_t;
-button_t button;
+extern button_t button;
 
 void button_init();
 void button_update();

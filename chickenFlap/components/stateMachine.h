@@ -25,7 +25,7 @@ typedef struct{
 	util_time_t firstTimeInState;
 	bool errLED; // LOW: errLED is on, HIGH: errLED is off
 }stateMachine_t;
-stateMachine_t stateMachine;
+extern stateMachine_t stateMachine;
 
 void stateMachine_init();
 void stateMachine_update();

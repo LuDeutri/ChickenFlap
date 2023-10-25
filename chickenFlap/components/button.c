@@ -1,5 +1,7 @@
 #include "button.h"
 
+button_t button;
+
 void button_init(){
 	button.onePingIfButtonPressed = false;
 	button.buttonMenuBack = false;

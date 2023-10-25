@@ -32,8 +32,10 @@ typedef enum{
 	DISPLAY_TIMER_CLOSING,
 	DISPLAY_TIMER_OPENING,
 	DISPLAY_CONFIG,
+	DISPLAY_CONFIG_PAGE_2,
 	DISPLAY_CONFIG_IN_USE,
-	DISPLAY_CONFIG_ADJUST_TIME
+	DISPLAY_CONFIG_ADJUST_TIME,
+	DISPLAY_CONFIG_MOTORSPEED
 } displayPage_t;
 
 typedef enum{
@@ -71,7 +73,8 @@ typedef enum{
 
 typedef enum{
 	CONFIG_SELECT_IN_USE,
-	CONFIG_SELECT_ADJUST_TIME
+	CONFIG_SELECT_ADJUST_TIME,
+	CONFIG_SELECT_MOTORSPEED
 } configSelect_t;
 
 typedef enum{
@@ -89,7 +92,7 @@ typedef struct{
 	uint8_t adjustTimeSelect;	// Enum: adjustTimeSelect_t
 	bool notificationWindowActive; // True if an error or warn window is shown on the display
 } display_t;
-display_t display;
+extern display_t display;
 
 void display_init();
 void display_update();

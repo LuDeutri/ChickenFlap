@@ -1,50 +1,44 @@
 #include "watch.h"
 
+watch_t watch;
+
 void watch_init(){
-	watchRestart = true;
-	watch.watchTimer = 0;
+	RTC_TimeTypeDef sTime = {0};
+
+	sTime.Hours = 12;
+	sTime.Minutes = 0;
+	sTime.Seconds = 0;
+	sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+
+	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+		error.watchRTCbroken = true;
 }
+
 
 void watch_update(){
-	// watch start condition
-	if (watchRestart){
-		watch.watchDecHour = 0;
-		watch.watchOneHour = 0;
-		watch.watchDecMinute = 0;
-		watch.watchOneMinute = 0;
-		watchRestart = false;
-	}
+    RTC_TimeTypeDef getTime = {0};
+    RTC_DateTypeDef getDate = {0};
 
-	// Count watch
-	// Increase one-minute every 60,000ms
-	if (millis() > watch.watchTimer + 60000){
-		watch.watchTimer = millis();
-		watch.watchOneMinute++;
-	}
+    if (HAL_RTC_GetTime(&hrtc, &getTime, RTC_FORMAT_BCD) != HAL_OK)
+      error.watchRTCbroken = true;
 
-	// Increase dec-minute if one-minute reaches 10 and set one-minute back to 0
-	if (watch.watchOneMinute >= 10) {
-		watch.watchDecMinute++;
-		watch.watchOneMinute = 0;
-	}
+    // getDate is required to synchronize getTime, even if the date is not used
+    HAL_RTC_GetDate(&hrtc, &getDate, RTC_FORMAT_BIN);
 
-	// Increase one-hour if dec-minute reaches 6 and set dec-minute back to 0
-	if (watch.watchDecMinute >= 6) {
-		watch.watchOneHour++;
-		watch.watchDecMinute = 0;
-	}
 
-	// Increase dec-hour if one-hour reaches 10 and set one-hour back to 0
-	if (watch.watchOneHour >= 10) {
-		watch.watchDecHour++;
-		watch.watchOneHour = 0;
-	}
-
-	// Restart if 24h is reached. Except when the time is set by the end-user
-	if (watch.watchDecHour >= 2 && watch.watchOneHour >= 4 && (display.watchSelect == WATCH_SELECT_NONE))
-		watchRestart = true;
+    watch.hour = getTime.Hours;
+    watch.minute = getTime.Minutes;
+    watch.second = getTime.Seconds;
 }
 
-void resetSecCounter(){
-	watch.watchTimer = millis();
+void watch_setTime(uint8_t h, uint8_t m, uint8_t s){
+	RTC_TimeTypeDef sTime = {0};
+
+	sTime.Hours = h;
+	sTime.Minutes = m;
+	sTime.Seconds = s;
+
+	if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+		error.watchRTCbroken = true;
 }

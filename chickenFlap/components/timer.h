@@ -23,19 +23,15 @@ typedef struct{
 	timerState_t timerState;
 	bool timerActionRunning; // True if motor open / close if the timer time is reached
 
-	// Time when the flap should close
-	uint8_t openFlapTime_Dec_H;
-	uint8_t openFlapTime_One_H;
-	uint8_t openFlapTime_Dec_M;
-	uint8_t openFlapTime_One_M;
-
 	// Time when the flap should open
-	uint8_t closeFlapTime_Dec_H;
-	uint8_t closeFlapTime_One_H;
-	uint8_t closeFlapTime_Dec_M;
-	uint8_t closeFlapTime_One_M;
+	uint8_t openFlapTime_hour;
+	uint8_t openFlapTime_minute;
+
+	// Time when the flap should close
+	uint8_t closeFlapTime_hour;
+	uint8_t closeFlapTime_minute;
 } flapTimer_t;
-flapTimer_t timer;
+extern flapTimer_t timer;
 
 void timer_init();
 
