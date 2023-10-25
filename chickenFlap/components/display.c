@@ -548,7 +548,7 @@ void displayStateMachine() {
 	case DISPLAY_CONFIG_MOTORSPEED:
 		// Shows motorspeed in percentage adjusted via potentiometer on the pcb
 		#ifdef ENABLE_GERMAN_LANGUAGE
-		strcat(strMotorSpeed, "Motorgeschwindigkeit:");
+		strcat(strMotorSpeed, "Motorspeed:");
 		#endif
 		#ifdef ENABLE_ENGLISH_LANGUAGE
 		strcat(strMotorSpeed, "Motorspeed:");

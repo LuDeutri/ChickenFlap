@@ -12,7 +12,6 @@ typedef struct{
 	uint8_t hour;
 	uint8_t minute;
 	uint8_t second;
-	//util_time_t watchTimer;
 } watch_t;
 extern watch_t watch;
 

@@ -1,8 +1,18 @@
 /*
  * Here are functions to control the flap.
  *
+ * The motor is controlled via low side switches. Addionally an 2-way-relay is used to swicht the positiv power supply (added in pcb revision 2). Therefor it is impossible
+ * to short circuit your batterie with both low side switches running at the same time.
+ *
+ * Each low side swiche has one enable signal and one PWM timer is used for both switches. With this enable signal LOW, the leackage
+ * current of the swichtes is on minimum.
+ *
+ * The 2-way-relay is controlled via an GPIO (MOTOR_VCC_CTRL).
+ * LOW: Open is enabled
+ * HIGH: Closing is enabled
+ *
  * Author: Luca Deutrich
- * Date: 26.12.21
+ * Date: 25.10.2023
  */
 
 #ifndef COMPONENTS_FLAP_H_
@@ -19,6 +29,11 @@ typedef enum{
 	FLAP_CLOSING,
 	FLAP_CLOSED
 } flapState_t;
+
+typedef enum{ // Relay ctrl pin high or low:
+	VCC_OPEN, // MOTOR_VCC_OPEN is connected
+	VCC_CLOSE // MOTOR_VCC_CLOSE is connected
+} vccCtrl_t;
 
 typedef struct{
 	uint8_t actuallymotorDirection;
@@ -37,7 +52,7 @@ typedef struct{
 	bool motorWaitForButton; 		// Used if the motor is stoped by the button Flap_CTRL
 	util_time_t lastTimeMotorRuns;
 	lowSideDriverConfig_t mtrDriverConfig;
-	uint8_t motorSpeed; 		// In Percentage 0-100% adjusted via potentiometer
+	uint8_t motorSpeed; 		// In Percentage 0-100% adjusted via potentiometer and only adjustable in DISPLAY_CONFIG_MOTORSPEED
 } flap_t;
 extern flap_t flap;
 
@@ -73,11 +88,6 @@ void motorCtrl(uint8_t direction);
  * Stops the motor
  */
 void stopMotor();
-
-/*
- * Set low side driver pwm duty cycle
- */
-void setDutyCycle(uint8_t motorDirection, uint8_t duty);
 
 /*
  * Measure the motor operation time if its setting about the IN_USE function. The function will start if motorOperationTimeSetted is set to false.

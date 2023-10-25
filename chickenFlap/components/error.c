@@ -9,8 +9,6 @@ err_delay_t errBatteryEmpty;
 err_delay_t warnBatteryLow;
 
 
-
-
 void error_init(){
 	error.stateMachine = false;
 	error.motorMaxRunningTime = false;
@@ -27,6 +25,9 @@ void error_init(){
 	warning.noBatteryData = false;
 	warning.timerTimes = false;
 	warning.overallWarning = false;
+	warning.motorSpeedIsMax = false;
+
+	warning.accepted.motorSpeedIsMax = false;
 
 	reset_error_delay(&errTimerTimes);
 	reset_error_delay(&errDisplayInit);
@@ -45,6 +46,7 @@ void error_update(){
 	setMotorEnable();
 	checkTimerTimes();
 	checkDisplayInit();
+	checkMotorSpeed();
 
 	if(millis() > error.timeNotificationShown + TIMEOUT_NOTIFICATION_SHOWN)
 		resetNotificationShown();
@@ -66,7 +68,7 @@ void checkAllErrors(){
 }
 
 void checkForWarnings(){
-	if(warning.lowBattery || warning.noBatteryData || warning.startAnimation || warning.timerTimes){
+	if(warning.lowBattery || warning.noBatteryData || warning.startAnimation || warning.timerTimes || warning.motorSpeedIsMax){
 		warning.overallWarning = true;
 		// Show warning on the display
 		showNotificationWindow();
@@ -104,19 +106,18 @@ void checkDisplayInit(){
 void checkBatteryCapacity(){
 	// <5% value means the ADC cannot work properly
 	// In this case the flap should not switch into the error state
-	if(error_delay(&warnNoBatteryData, bms.batteryCapapcityPercentage < 5, TIMEOUT_WARN_NO_BATTERY_DATA)) {
+	if(error_delay(&warnNoBatteryData, bms.soc < 5, TIMEOUT_WARN_NO_BATTERY_DATA))
 		warning.noBatteryData = true;
-		return;
-	}
+		else warning.noBatteryData = false;
 
 	// Set low battery warning. Set to false if the error is setting true
-	if(error_delay(&warnBatteryLow, bms.batteryCapapcityPercentage < WARNING_BATTERY_LOW_PERCENTAGE && !error.emptyBattery, TIMEOUT_WARN_BATTERY_LOW))
+	if(error_delay(&warnBatteryLow, bms.soc < WARNING_BATTERY_LOW_PERCENTAGE && !error.emptyBattery, TIMEOUT_WARN_BATTERY_LOW))
 		warning.lowBattery = true;
 	else if(error.emptyBattery)
 		warning.lowBattery = false;
 
 	// Set empty battery error
-	if(error_delay(&errBatteryEmpty, bms.batteryCapapcityPercentage < ERROR_BATTERY_EMPTY_PERCENTAGE, TIMEOUT_ERROR_BATTERY_EMPTY))
+	if(error_delay(&errBatteryEmpty, bms.soc < ERROR_BATTERY_EMPTY_PERCENTAGE, TIMEOUT_ERROR_BATTERY_EMPTY))
 		error.emptyBattery = true;
 }
 
@@ -124,6 +125,18 @@ void checkStartAnimation(){
 	if(warning.startAnimation)
 		// Stop start animation in error case
 		startAnimation.enable = false;
+}
+
+void checkMotorSpeed(){
+	// If warning was already shown and accepted, ignore the warning
+	if(warning.accepted.motorSpeedIsMax){
+		warning.motorSpeedIsMax = false;
+		return;
+	} else if(warning.motorSpeedIsMax && !display.notificationWindowActive)
+		warning.accepted.motorSpeedIsMax = true;
+
+	// Set warning if speed is set to max value
+	warning.motorSpeedIsMax = (flap.motorSpeed == 100);
 }
 
 void showNotificationWindow(){
@@ -156,6 +169,8 @@ void showNotificationWindow(){
 	else stop = false;
 	if(!warning.timerTimes || (warning.timerTimes && error.notifications[WARNING_TIMER_TIMES])) stop &= true;
 	else stop = false;
+	if(!warning.motorSpeedIsMax || (warning.motorSpeedIsMax && error.notifications[WARNING_MOTORSPEED_MAX])) stop &= true;
+	else stop = false;
 	if(stop)
 		return;
 
@@ -176,7 +191,7 @@ void showNotificationWindow(){
 	else
 		strcat(headline, "Warning");
 
-	// Create error / warining description
+	// Create error / warning description
 	setErrorDescription();
 
 	// Draw window structure and write the headline
@@ -231,7 +246,7 @@ void setErrorDescription(){
 		else if(error.timerTimes)
 			strcat(error.errorDescription, "Timer oeffnen und/schliessen Zeit/duerfen nicht/gleich sein./Neustart notwendig.");
 		else if(error.watchRTCbroken)
-			strcat(error.errorDescription, "Uhrzeit kalibrierung nicht möglich.");
+			strcat(error.errorDescription, "Uhrzeit kalibrierung/nicht möglich.");
 		else if(error.displayInit)
 			strcat(error.errorDescription, "Display antwortet/nicht.");
 		else if(error.emptyBattery)
@@ -250,6 +265,9 @@ void setErrorDescription(){
 			strcat(strWarn, " Minuten");
 			strcat(error.errorDescription, strWarn);
 		}
+		else if(warning.motorSpeedIsMax)
+			strcat(error.errorDescription, "Motorgeschwindigkeit/ist auf 100%/eingestellt");
+
 	#endif
 
 	#ifdef ENABLE_ENGLISH_LANGUAGE
@@ -274,13 +292,15 @@ void setErrorDescription(){
 		else if(warning.noBatteryData)
 			strcat(error.errorDescription, "Battery data/are not available");
 		else if(warning.timerTimes){
-			char strTimeout[2] = "";
+			char strTimeout[3] = "";
 			sprintf(strTimeout, "%d",(TIMEOUT_ERROR_TIMER_TIMES/60000));
 			char strWarn[255] = "Timer Open and/closing time must/not be the same./Error occours/in: ";
 			strcat(strWarn, strTimeout);
 			strcat(strWarn, " minutes");
 			strcat(error.errorDescription, strWarn);
 		}
+		else if(warning.motorSpeedIsMax)
+			strcat(error.errorDescription, "Motorspeed is/adjusted to/maximum");
 	#endif
 }
 
@@ -296,6 +316,7 @@ void setNotificationShown(){
 	else if(warning.noBatteryData && !error.notifications[WARNING_NO_BATTERY_DATA])			error.notifications[WARNING_NO_BATTERY_DATA] = true;
 	else if(warning.startAnimation && !error.notifications[WARNING_START_ANIMATION]) 		error.notifications[WARNING_START_ANIMATION] = true;
 	else if(warning.timerTimes && !error.notifications[WARNING_TIMER_TIMES])				error.notifications[WARNING_TIMER_TIMES] = true;
+	else if(warning.motorSpeedIsMax && !error.notifications[WARNING_MOTORSPEED_MAX])		error.notifications[WARNING_MOTORSPEED_MAX] = true;
 	else error.timeNotificationShown = 0;
 
 	for(uint8_t i; i<sizeof(error.notifications)/sizeof(error.notifications[0]); i++){
@@ -313,81 +334,102 @@ void errorTest(){
 	// Display init error
 	if(millis() > 5000 && millis() < 15000)
 		error.displayInit = 1;
-	else if (millis() > 16000)
+	else if (millis() > 16000){
 		error.displayInit = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Empty battery error
 	if(millis() > 20000 && millis() < 30000)
 		error.emptyBattery = 1;
-	else if (millis() > 31000)
+	else if (millis() > 31000) {
 		error.emptyBattery = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Motor max runnung time error
 	if(millis() > 35000 && millis() < 45000)
 		error.motorMaxRunningTime = 1;
-	else if (millis() > 46000)
+	else if (millis() > 46000){
 		error.motorMaxRunningTime = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Safety test error
 	if(millis() > 50000 && millis() < 60000)
 		error.safetyTest = 1;
-	else if (millis() > 61000)
+	else if (millis() > 61000) {
 		error.safetyTest = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Statemachine error
-	if(millis() > 75000 && millis() < 85000)
+	if(millis() > 65000 && millis() < 75000)
 		error.stateMachine = 1;
-	else if (millis() > 86000)
+	else if (millis() > 76000) {
 		error.stateMachine = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Timer times error
-	if(millis() > 70000 && millis() < 80000)
+	if(millis() > 80000 && millis() < 90000)
 		error.timerTimes = 1;
-	else if (millis() > 81000)
+	else if (millis() > 91000) {
 		error.timerTimes = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
 
 	// Low battery warning
-	if(millis() > 105000 && millis() < 115000)
+	if(millis() > 95000 && millis() < 105000)
 		warning.lowBattery = 1;
-	else if (millis() > 116000)
+	else if (millis() > 106000)
 		warning.lowBattery = 0;
 
 
 	// No battery data warning
-	if(millis() > 120000 && millis() < 130000)
+	if(millis() > 110000 && millis() < 120000)
 		warning.noBatteryData = 1;
-	else if (millis() > 131000)
+	else if (millis() > 121000)
 		warning.noBatteryData = 0;
 
 
 	// Start animation warning
-	if(millis() > 135000 && millis() < 145000)
+	if(millis() > 125000 && millis() < 135000)
 		warning.startAnimation = 1;
-	else if (millis() > 146000)
+	else if (millis() > 136000)
 		warning.startAnimation = 0;
 
 
 	// Timer times warning
-	if(millis() > 150000 && millis() < 160000)
+	if(millis() > 140000 && millis() < 150000)
 		warning.timerTimes = 1;
-	else if (millis() > 161000)
+	else if (millis() > 151000)
 		warning.timerTimes = 0;
 
 
-	// 3 Errors to the same time
-	if(millis() > 170000 && millis() < 190000){
+	// 3 Errors at the same time
+	if(millis() > 160000 && millis() < 180000){
 		error.displayInit = 1;
 		error.emptyBattery = 1;
 		error.stateMachine = 1;
-	}else if (millis() > 191000){
+	}else if (millis() > 181000){
 		error.displayInit = 0;
 		error.emptyBattery = 0;
 		error.stateMachine = 0;
+		nextState(STATE_FLAP_CLOSE);
 	}
 
 	// Display RTC error
-		if(millis() > 200000 && millis() < 22000)
-			error.watchRTCbroken = 1;
-		else if (millis() > 22100)
-			error.watchRTCbroken = 0;
+	if(millis() > 185000 && millis() < 195000)
+		error.watchRTCbroken = 1;
+	else if (millis() > 196000) {
+		error.watchRTCbroken = 0;
+		nextState(STATE_FLAP_CLOSE);
+	}
+
+	// Warning motor has max speed adjusted
+	if(millis() > 200000 && millis() < 210000)
+		warning.motorSpeedIsMax = 1;
+	else if (millis() > 211000)
+		warning.motorSpeedIsMax = 0;
 }

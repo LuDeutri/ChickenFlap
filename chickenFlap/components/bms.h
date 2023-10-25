@@ -13,13 +13,15 @@
 #include "flap.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
+#define TABLE_SIZE_OCV_CAR_BATTERY 101
+
 typedef struct{
-	uint8_t batteryCapapcityPercentage;
-	uint16_t batteryVoltage;
+	uint8_t soc;
+	uint16_t adcBatteryVoltage;
 } bms_t;
 extern bms_t bms;
 
-static const uint16_t batteryCapacity[22] = {
+static const uint16_t ocvAAAbattery[22] = {
 	0x00U,	0x19U,	0x57U,	0x96U,	//1.55V, 1.5V, 1.45V, 1.4V
 	0x11FU,	0x219U, 0x3C2U, 0x520U,	//1.35V, 1.3V, 1.25V, 1.2V
 	0x6D6,	0x7D0U, 0x84D,	0x88BU,	//1.15V, 1.1V, 1.05V, 1V
@@ -28,9 +30,21 @@ static const uint16_t batteryCapacity[22] = {
 	0xB15U, 0xB54U					//0.55V, 0.5V
 	};
 
-// Loop values used to calculate an averaged battery capacity value
-extern uint8_t loopRound;
-extern uint32_t tmpSum;
+
+static const uint16_t ocvCarBattery[TABLE_SIZE_OCV_CAR_BATTERY] = { // 0 .. 100 % || voltage=value/1000
+	0x2E36, 0x2E3E, 0x2E46, 0x2E4E, 0x2E56, 0x2E5E, 0x2E66, 0x2E6E, 0x2E76, 0x2E7E,
+	0x2E86, 0x2E8E, 0x2E97, 0x2E9F, 0x2EA7, 0x2EAF, 0x2EB7, 0x2EBF, 0x2EC7, 0x2ECF,
+	0x2ED7, 0x2EDF, 0x2EE7, 0x2EEF, 0x2EF8, 0x2F00, 0x2F08, 0x2F10, 0x2F18, 0x2F20,
+	0x2F28, 0x2F30, 0x2F38, 0x2F40, 0x2F48, 0x2F50, 0x2F59, 0x2F61, 0x2F69, 0x2F71,
+	0x2F79, 0x2F81, 0x2F89, 0x2F91, 0x2F99, 0x2FA1, 0x2FA9, 0x2FB1, 0x2FBA, 0x2FC2,
+	0x2FCA, 0x2FD2, 0x2FDA, 0x2FE2, 0x2FEA, 0x2FF2, 0x2FFA, 0x3002, 0x300A, 0x3012,
+	0x301B, 0x3023, 0x302B, 0x3033, 0x303B, 0x3043, 0x304B, 0x3053, 0x305B, 0x3063,
+	0x306B, 0x3073, 0x307C, 0x3084, 0x308C, 0x3094, 0x309C, 0x30A4, 0x30AC, 0x30B4,
+	0x30BC, 0x30C4, 0x30CC, 0x30D4, 0x30DD, 0x30E5, 0x30ED, 0x30F5, 0x30FD, 0x3105,
+	0x310D, 0x3115, 0x311D, 0x3125, 0x312D, 0x3135, 0x313E, 0x3146, 0x314E, 0x3156,
+	0x315E
+};
+
 
 void bms_init();
 void bms_update();
@@ -43,17 +57,16 @@ void bms_update();
 void readBatteryVoltage();
 
 /*
- * Calculate the Capacity with the given batteryVoltage
- * and the OCV curve, safed in the lookUp-Table 'batteryCapacity'
+ * Calculate the SOC with the given batteryVoltage
+ * and the OCV curve, safed in the lookUp-table.
  */
-void getBatteryCapacityInPercentage();
+void calculateSOC();
 
 /*
- * ------------Actually not used--------------
- *
- * Round given value for the lookUpTable
- * @param values about 1800 or below 500 will result in an error. The return would be 0.
+ * Search the nearest value in the OCV table for the given cellVoltage and return the identifer of that one.
+ * @param: cellVoltage (measured)
+ * @return: identifer of nearst ocv value --> soc value for the given cellvoltage
  */
-uint16_t roundForTable(uint16_t value);
+uint8_t findNearestValueIdentifier(uint16_t cellVoltage);
 
 #endif

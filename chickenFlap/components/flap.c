@@ -14,8 +14,13 @@ void flap_init(){
 	flap.motorEnable = true;
 	flap.motorButtonCtrlTime = 0;
 	flap.lastTimeMotorRuns = 0;
-	flap.motorSpeed = 0;
+	flap.motorSpeed = 30;
 
+	// Disable low side switches
+	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
+	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
+
+	// Start PWM timer
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
 }
 
@@ -53,19 +58,33 @@ void motorCtrl(uint8_t direction) {
 	// Update flap state
 	flap.actuallyStateFlap = direction;
 
-	// Start timer
-	if (!flap.motorIsRuning) {
+	if (!flap.motorIsRuning){
+		// Switch VCC ctrl relay and update first GPIOs before go further
+		switch(direction){
+		case FLAP_OPENING:
+			digitalWrite(MOTOR_VCC_CTRL, VCC_OPEN);
+			break;
+		case FLAP_CLOSING:
+			digitalWrite(MOTOR_VCC_CTRL, VCC_CLOSE);
+			break;
+		default:
+			// Should never be here
+		}
+
+		// Start timer
 		motorStartingTime = millis();
 		flap.motorIsRuning = true;
 	} else
 		flap.lastTimeMotorRuns = millis();
 
 	// Start motor action
-	if(direction == FLAP_OPENING) {
-		setDutyCycle(MOTOR_FLAP_OPEN, MOTOR_SPEED_PERCENTAGE);
-	} else if (direction == FLAP_CLOSING) {
-		setDutyCycle(MOTOR_FLAP_CLOSE, MOTOR_SPEED_PERCENTAGE);
-	}
+	// Update pwm generator
+	TIM1->CCR3 = (uint32_t)(MAX_TIMER_PWM * ((float)flap.motorSpeed/100));
+
+	if(direction == FLAP_OPENING)
+		digitalWrite(MOTOR_ENABLE_FLAP_OPEN, HIGH);
+	else if (direction == FLAP_CLOSING)
+		digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, HIGH);
 
 	// Calculate motor running time
 	flap.motorRunningTime = millis() - motorStartingTime;
@@ -73,8 +92,8 @@ void motorCtrl(uint8_t direction) {
 	// Measure and set operation time if flap.motorOperationTime is set to 0 before call of this function
 	measureMotorOperationTime();
 
-	// Switch to error state if the motor never stops
-	if(flap.motorRunningTime >= TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME)
+	// Switch to error state if the motor never stops or is running 3 Seconds about setted runningTime
+	if(flap.motorRunningTime >= TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME || ((flap.motorRunningTime >= flap.motorOperationTime+3000) && flap.motorOperationTimeSetted))
 		error.motorMaxRunningTime = true;
 
 	// If the motor motion was break in the middle, stop the reverse motion after the same time it was break up before
@@ -90,30 +109,16 @@ void motorCtrl(uint8_t direction) {
 		stopMotor();
 }
 
-void setDutyCycle(uint8_t motorDirection, uint8_t duty){
-	/*if((motorDirection != MOTOR_FLAP_OPEN && motorDirection != MOTOR_FLAP_CLOSE && motorDirection != MOTOR_FLAP_BOTH_DIRECTIONS) || duty < 0 || duty > 100)
-		return;
-
-	switch(motorDirection){
-	case MOTOR_FLAP_OPEN:
-		TIM4->CCR4 = 0;
-		TIM4->CCR3 = (uint32_t)(MAX_TIMER_PWM * ((float)duty/100));
-		break;
-	case MOTOR_FLAP_CLOSE:
-		TIM4->CCR3 = 0;
-		TIM4->CCR4 = (uint32_t)(MAX_TIMER_PWM * ((float)duty/100));
-		break;
-	case MOTOR_FLAP_BOTH_DIRECTIONS:
-		TIM4->CCR3 = 0;
-		TIM4->CCR4 = 0;
-	}*/
-}
-
 void stopMotor(){
-	//setDutyCycle(MOTOR_FLAP_BOTH_DIRECTIONS, 0);
+	// Update pwm generator
+	TIM1->CCR3 = 0;
 
 	// Reset motorCtrl state
 	flap.motorIsRuning = false;
+
+	// Disable low side switches
+	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
+	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
 
 	// Update flap status if operation time is setting
 	if(flap.motorOperationTimeSetted && !flap.motorWaitForButton){

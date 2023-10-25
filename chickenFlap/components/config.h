@@ -12,10 +12,10 @@
 // ------------ Enable flags ------------
 // If not used comment out the corresponding lines
 
-// Enable battery capacity check, a low battery will be ignored if defined
+// Enable battery capacity check, a low battery will be ignored if not defined
 //#define ENABLE_BATTERY_CAPACITY_CHECK
 // Enable start animation
-//#define SSD13006_ENABLE_START_ANIMATION
+#define SSD13006_ENABLE_START_ANIMATION
 // Enable start animation slogan
 #define SSD13006_START_ANIMATION_SLOGAN
 // Enable start animation movie scene
@@ -58,6 +58,7 @@
 // ------------ Battery ------------
 // Number of 1.5V cells in the battery
 #define CELL_NUMBER_9V_BLOCK 6
+#define CELL_NUMBER_12V_CAR_BATTERY 1
 // Define max. cell capacity
 #define CELL_MAX_CAPACITY 3000 //mA
 // Define battery cell voltage
@@ -72,8 +73,8 @@
 
 // ------------ PCB Hardware ------------
 // Resistor values of the voltage divider of the ADC input
-#define ADC_VOLTAGE_DIVIDER_R1 1500 // Ohm
-#define ADC_VOLTAGE_DIVIDER_R2 681	// Ohm
+#define ADC_VOLTAGE_DIVIDER_R1 10000 // Ohm
+#define ADC_VOLTAGE_DIVIDER_R2 1800	// Ohm
 
 
 // ------------ Motor ------------

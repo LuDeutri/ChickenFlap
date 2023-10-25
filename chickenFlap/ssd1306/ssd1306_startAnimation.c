@@ -347,7 +347,7 @@ void ssd1306StartAnimation_slogan(){
 	// Reset diplay
 	ssd1306_Fill(Black);
 
-	char strHeadline[30] = "Chickenflap v1.0|1'22";
+	char strHeadline[30] = "Chickenflap v2.1|9'23";
 	ssd1306_SetCursor(0,0);
 	ssd1306_WriteString(strHeadline, Font_6x8, White);
 

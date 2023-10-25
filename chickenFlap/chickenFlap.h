@@ -1,5 +1,5 @@
 /**
- * This is an self developed chickenflap.
+ * This is a self developed chickenflap.
  *
  * Author: Luca Deutrich
  * Date: 23.12.2021

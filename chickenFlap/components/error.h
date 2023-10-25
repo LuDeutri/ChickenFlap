@@ -36,7 +36,8 @@ typedef enum{
 	WARNING_LOW_BATTERY,
 	WARNING_NO_BATTERY_DATA,
 	WARNING_START_ANIMATION,
-	WARNING_TIMER_TIMES
+	WARNING_TIMER_TIMES,
+	WARNING_MOTORSPEED_MAX
 }notificationList_t;
 
 typedef struct{
@@ -47,11 +48,19 @@ typedef struct{
 	bool displayInit;
 	bool emptyBattery;
 	bool watchRTCbroken;
+	bool motorSpeedIsMax;
 	char errorDescription[255];
-	bool notifications[11]; // Value is true if the error with the index, of the enum, was shown already
+	bool notifications[12]; // Value is true if the error with the index, of the enum, was shown already
 	util_time_t timeNotificationShown;
 }error_t;
 extern error_t error;
+
+/*
+ * This struct safes warnings or errors accepted state. If the variable is true, the error / warning will be ignored for the rest of the running time
+ */
+typedef struct{
+	bool motorSpeedIsMax;
+} err_warn_accepted_t;
 
 typedef struct{
 	bool overallWarning;
@@ -59,6 +68,8 @@ typedef struct{
 	bool noBatteryData;
 	bool startAnimation;
 	bool timerTimes;
+	bool motorSpeedIsMax;
+	err_warn_accepted_t accepted;
 } warning_t;
 extern warning_t warning;
 
@@ -105,6 +116,11 @@ void checkStartAnimation();
  * Check if the display is initialized before timeout is reached
  */
 void checkDisplayInit();
+
+/*
+ * Check if the motor speed is set to 100%
+ */
+void checkMotorSpeed();
 
 /*
  * Create an error / a warning description string to show on the display

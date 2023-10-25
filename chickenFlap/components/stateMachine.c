@@ -72,7 +72,6 @@ void stateMachine_update(){
 		break;
 	default:
 		error.stateMachine = true;
-		nextState(STATE_ERROR);
 		break;
 	}
 }

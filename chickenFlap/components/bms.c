@@ -1,12 +1,14 @@
 #include "bms.h"
 
 bms_t bms;
+
+// Loop values used to calculate an averaged battery capacity value
 uint8_t loopRound;
 uint32_t tmpSum;
 
 void bms_init(){
-	bms.batteryCapapcityPercentage = 0;
-	bms.batteryVoltage = 0;
+	bms.soc = 0;
+	bms.adcBatteryVoltage = 0;
 
 	loopRound = 0;
 	tmpSum = 0;
@@ -18,7 +20,7 @@ void bms_update(){
 		return;
 
 	readBatteryVoltage();
-	getBatteryCapacityInPercentage();
+	calculateSOC();
 }
 
 void readBatteryVoltage() {
@@ -31,37 +33,46 @@ void readBatteryVoltage() {
 		return;
 
 	// Calculate averaged value
-	bms.batteryVoltage = tmpSum / loopRound;
+	bms.adcBatteryVoltage = tmpSum / loopRound;
 	// Reset loop values
 	loopRound = 0;
 	tmpSum = 0;
 }
 
-void getBatteryCapacityInPercentage(){
-	uint16_t cellVoltage = bms.batteryVoltage / CELL_NUMBER_9V_BLOCK;
-
-	if (cellVoltage > 1800) // Check for valid value
-		nextState(STATE_ERROR);
-	else if (cellVoltage < 500) // Check for an empty battery
-		bms.batteryCapapcityPercentage = 0;
-	else if (cellVoltage >= 1550) // Check for full Battery
-		bms.batteryCapapcityPercentage = 100;
-	else{
-		bms.batteryCapapcityPercentage = (uint8_t)((float)(1-((float)(batteryCapacity[abs((cellVoltage/50)-31)]) / CELL_MAX_CAPACITY))*100);
-
+void calculateSOC(){
+	// Check that an adc value is available
+	if(bms.adcBatteryVoltage == 0){
+		bms.soc = 0;
+		return;
 	}
+	// Calculate cell voltage
+	uint16_t cellVoltage = bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY;
+
+	// Check cell voltage for plausibilty
+	if (cellVoltage > 14000 || cellVoltage < 10000) // Check for valid value
+		error.emptyBattery = true;
+	else if (cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
+		bms.soc = 0;
+	else if (cellVoltage >= ocvCarBattery[100]) // Check for full Battery
+		bms.soc = 100;
+	else
+		// Get table value for cell voltage value
+		bms.soc = findNearestValueIdentifier(cellVoltage);
 }
 
-uint16_t roundForTable(uint16_t value) {
+uint8_t findNearestValueIdentifier(uint16_t cellVoltage) {
+    uint16_t nearestValue = ocvCarBattery[0];
+    uint8_t identifier = 0;
+    uint16_t minDifference = abs(cellVoltage - nearestValue);
 
-	if (value > CELL_MAX_VOLTAGE || value < 500) // Check for valid value or an empty battery
-		return 0;
-	else if (value > 1550) // Make value valid if its a little bit to high
-		return 1550;
-
-	uint8_t modValue = value % 5;
-	if (modValue == 0) // Return value if its not needed to round
-		return value;
-	else
-		return value -= modValue; // Round down to the next valid value
+    // Search the next value for the measured ADC battery voltage and return the identifier of that value
+    for (int i = 1; i < TABLE_SIZE_OCV_CAR_BATTERY; i++) {
+        uint32_t difference = abs(cellVoltage - ocvCarBattery[i]);
+        if (difference < minDifference) {
+            minDifference = difference;
+            nearestValue = ocvCarBattery[i];
+            identifier = i;
+        }
+    }
+    return identifier;
 }
