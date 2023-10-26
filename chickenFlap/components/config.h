@@ -24,12 +24,13 @@
 #define ENABLE_DEBUG_LED
 // Enable battery load status in the top right of the display, should only be defined, if an accumulator is used
 //#define ENABLE_BATTERY_LOAD_STATUS
+// Enable RTC using otherwise the system clk is used for the watch
+//#define USE_RTC
 
-//---------- One language must be defined ----------------
+//---------- Language ----------------
+// If no other language is enabled, english is used
 // Use german language for error and warning descriptions
 //#define ENABLE_GERMAN_LANGUAGE
-// Use english language for error and warning descitptions
-#define ENABLE_ENGLISH_LANGUAGE
 
 /* -------------------------------------------------------------------
  * Dont comment out the constants below this line. Only adjust of the defined value is permitted
