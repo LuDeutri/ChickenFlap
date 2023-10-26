@@ -236,7 +236,7 @@ void setErrorDescription(){
 	// anything in excess will be ignored.
 	// A maximum of 20 characters can be displayed per line.
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	#ifdef ENABLE_GERMAN_LANGUAGE
+	#ifdef USE_GERMAN_LANGUAGE
 		if(error.stateMachine)
 			strcat(error.errorDescription, "StateMachine:/Unerwarteter/Zustand.");
 		else if(error.motorMaxRunningTime)
@@ -268,9 +268,7 @@ void setErrorDescription(){
 		else if(warning.motorSpeedIsMax)
 			strcat(error.errorDescription, "Motorgeschwindigkeit/ist auf 100%/eingestellt");
 
-	#endif
-
-	#ifdef ENABLE_ENGLISH_LANGUAGE
+	#else
 		if(error.stateMachine)
 			strcat(error.errorDescription, "Statemachine error:/Unexpected state.");
 		else if(error.motorMaxRunningTime)

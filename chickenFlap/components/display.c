@@ -42,32 +42,28 @@ void displayStateMachine() {
 	case TIMER_ACTIVE:
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			strcat(strTimer, "AN");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			strcat(strTimer, "ON");
 		#endif
 		break;
 	case TIMER_DEACTIVE:
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			strcat(strTimer, "AUS");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			strcat(strTimer, "OFF");
 		#endif
 		break;
 	case TIMER_ONLY_OPEN:
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			strcat(strTimer, "OEFFNEN");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			strcat(strTimer, "OPENING");
 		#endif
 		break;
 	case TIMER_ONLY_CLOSE:
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			strcat(strTimer, "SCHLIESSEN");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			strcat(strTimer, "CLOSING");
 		#endif
 		break;
@@ -141,15 +137,13 @@ void displayStateMachine() {
 		if(stateMachine.state == STATE_ERROR){
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFailure, "FEHLER");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFailure, "ERROR");
 			#endif
 		} else if (warning.overallWarning) {
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFailure, "WARNUNG");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFailure, "WARNING");
 			#endif
 		}
@@ -174,32 +168,28 @@ void displayStateMachine() {
 		case FLAP_OPENED:
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFlap, "GEOEFFNET");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFlap, "OPENED");
 			#endif
 			break;
 		case FLAP_OPENING:
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFlap, "OEFFNET");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFlap, "OPENING");
 			#endif
 			break;
 		case FLAP_CLOSING:
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFlap, "SCHLIESSEND");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFlap, "CLOSING");
 			#endif
 			break;
 		case FLAP_CLOSED:
 			#ifdef ENABLE_GERMAN_LANGUAGE
 				strcat(strFlap, "GESCHLOSSEN");
-			#endif
-			#ifdef ENABLE_ENGLISH_LANGUAGE
+			#else
 				strcat(strFlap, "CLOSED");
 			#endif
 			break;
@@ -284,8 +274,7 @@ void displayStateMachine() {
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_SetCursor(11,35);
 			ssd1306_WriteString("Uhr", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Watch", Font_6x8, White);
 		#endif
 
@@ -350,8 +339,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(0,32);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Auf:", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Open:", Font_6x8, White);
 		#endif
 
@@ -359,8 +347,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(38,32);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("AN", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("ON", Font_6x8, White);
 		#endif
 
@@ -368,8 +355,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(55,32);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("AUS", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("OFF", Font_6x8, White);
 		#endif
 
@@ -377,16 +363,14 @@ void displayStateMachine() {
 		ssd1306_SetCursor(78,32);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Uhrzeit", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Set Time", Font_6x8, White);
 		#endif
 		//--------------------- CLOSING Configurations ---------------------
 		ssd1306_SetCursor(0,42);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Zu:", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Close:", Font_6x8, White);
 		#endif
 
@@ -394,8 +378,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(38,42);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("AN", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("ON", Font_6x8, White);
 		#endif
 
@@ -403,8 +386,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(55,42);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("AUS", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("OFF", Font_6x8, White);
 		#endif
 
@@ -412,8 +394,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(78,42);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Uhrzeit", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Set Time", Font_6x8, White);
 		#endif
 		break;
@@ -466,8 +447,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(25,29);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Set Motorzeit", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Set motor time", Font_6x8, White);
 		#endif
 
@@ -491,8 +471,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(25,29);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Set Motorzeit", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Set motor time", Font_6x8, White);
 		#endif
 
@@ -506,8 +485,7 @@ void displayStateMachine() {
 		ssd1306_SetCursor(5,29);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			ssd1306_WriteString("Use Taster FlapCTRL", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			ssd1306_WriteString("Use button FlapCTRL", Font_6x8, White);
 		#endif
 
@@ -517,8 +495,7 @@ void displayStateMachine() {
 		strcat(strMotorOperationTime, strMotorRunningTimeTenth);
 		#ifdef ENABLE_GERMAN_LANGUAGE
 			strcat(strMotorOperationTime, " Sekunden");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+		#else
 			strcat(strMotorOperationTime, " Seconds");
 		#endif
 		ssd1306_SetCursor(30,41);
@@ -539,19 +516,17 @@ void displayStateMachine() {
 
 		ssd1306_SetCursor(80,35);
 		#ifdef ENABLE_GERMAN_LANGUAGE
-		ssd1306_WriteString("Sekunden", Font_6x8, White);
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
+			ssd1306_WriteString("Sekunden", Font_6x8, White);
+		#else
 			ssd1306_WriteString("Seconds", Font_6x8, White);
 		#endif
 		break;
 	case DISPLAY_CONFIG_MOTORSPEED:
 		// Shows motorspeed in percentage adjusted via potentiometer on the pcb
 		#ifdef ENABLE_GERMAN_LANGUAGE
-		strcat(strMotorSpeed, "Motorspeed:");
-		#endif
-		#ifdef ENABLE_ENGLISH_LANGUAGE
-		strcat(strMotorSpeed, "Motorspeed:");
+			strcat(strMotorSpeed, "Motorspeed:");
+		#else
+			strcat(strMotorSpeed, "Motorspeed:");
 		#endif
 
 		strcat(strMotorSpeed, strMotorSpeedPercentage);
