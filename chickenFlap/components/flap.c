@@ -69,6 +69,7 @@ void motorCtrl(uint8_t direction) {
 			break;
 		default:
 			// Should never be here
+			break;
 		}
 
 		// Start timer
