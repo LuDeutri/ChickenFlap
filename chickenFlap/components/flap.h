@@ -31,8 +31,8 @@ typedef enum{
 } flapState_t;
 
 typedef enum{ // Relay ctrl pin high or low:
-	VCC_OPEN, // MOTOR_VCC_OPEN is connected
-	VCC_CLOSE // MOTOR_VCC_CLOSE is connected
+	VCC_CLOSE, // MOTOR_VCC_CLOSE is connected
+	VCC_OPEN // MOTOR_VCC_OPEN is connected
 } vccCtrl_t;
 
 typedef struct{

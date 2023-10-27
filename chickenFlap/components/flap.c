@@ -19,6 +19,7 @@ void flap_init(){
 	// Disable low side switches
 	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
 	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
+	digitalWrite(MOTOR_VCC_CTRL, VCC_CLOSE);
 
 	// Start PWM timer
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -120,6 +121,7 @@ void stopMotor(){
 	// Disable low side switches
 	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
 	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
+	digitalWrite(MOTOR_VCC_CTRL, VCC_CLOSE);
 
 	// Update flap status if operation time is setting
 	if(flap.motorOperationTimeSetted && !flap.motorWaitForButton){
