@@ -1,6 +1,7 @@
 #include "watch.h"
 
 watch_t watch;
+uint32_t actuallyTime;
 
 time_t t;
 struct tm *currentTime;
@@ -19,6 +20,7 @@ void watch_init(){
 			error.watchRTCbroken = true;
 	#else
 		setInitialTime();
+		actuallyTime = 0;
 	#endif
 }
 
@@ -58,17 +60,19 @@ void watch_setTime(uint8_t h, uint8_t m, uint8_t s){
 }
 
 void watch_updateSysClk(){
-	if(millis() >= 1000)
+	if(millis() - actuallyTime > 1000){ // Seconds
+		actuallyTime = millis();
 		watch.second++;
-	if(watch.second >= 59){
+	}
+	if(watch.second >= 59){		// Minutes
 		watch.minute++;
 		watch.second = 0;
 	}
-	if(watch.minute >= 59){
+	if(watch.minute >= 59){		// Hours
 		watch.hour++;
 		watch.minute = 0;
 	}
-	if(watch.hour >= 23){
+	if(watch.hour >= 24){		// Reset hours after day end
 		watch.hour = 0;
 	}
 }
