@@ -15,6 +15,11 @@ void bms_init(){
 }
 
 void bms_update(){
+	// If no battery is used --> exit
+	#ifndef USE_BATTERY
+		return;
+	#endif
+
 	// Dont read voltage if motor is running (voltage drop)
 	if(flap.lastTimeMotorRuns + 10000 > millis())
 		return;
@@ -49,7 +54,7 @@ void calculateSOC(){
 	uint16_t cellVoltage = bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY;
 
 	// Check cell voltage for plausibilty
-	if (cellVoltage > 14000 || cellVoltage < 10000) // Check for valid value
+	if (cellVoltage > CELL_OVERVOLTAGE_CAR_BATTERY || cellVoltage < CELL_UNDERVOLTAGE_CAR_BATTERY) // Check for valid value
 		error.emptyBattery = true;
 	else if (cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
 		bms.soc = 0;

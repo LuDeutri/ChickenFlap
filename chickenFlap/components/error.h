@@ -105,7 +105,7 @@ void checkTimerTimes();
 /*
  * Checks the battery capacity level
  */
-void checkBatteryCapacity();
+void checkBatterySOC();
 
 /*
  * If an error in the start animation occurs, stop the animation and go to normal operations.

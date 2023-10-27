@@ -74,10 +74,10 @@ void displayStateMachine() {
 	ssd1306_SetCursor(0,0);
 	ssd1306_WriteString(strTimer, Font_6x8, White);
 
-	#ifdef ENABLE_BATTERY_LOAD_STATUS
+	#ifdef USE_BATTERY
 		// Battery capacity
 		char strBatValue[10] = "";
-		sprintf(strBatValue,"%d", bms.batteryCapapcityPercentage);
+		sprintf(strBatValue,"%d", bms.soc);
 		strcat(strBatValue, "%");
 
 		ssd1306_SetCursor(104,0);
@@ -151,7 +151,7 @@ void displayStateMachine() {
 		// If the battery capacity is not shown, use top right of the display. Otherwise below there the capacity is shown
 		if(millis() % 1000 < 700) {
 			ssd1306_SetCursor(80,0);
-			#ifdef ENABLE_BATTERY_LOAD_STATUS
+			#ifdef USE_BATTERY
 			ssd1306_SetCursor(80,9);
 			#endif
 			ssd1306_WriteString(strFailure, Font_6x8, White);

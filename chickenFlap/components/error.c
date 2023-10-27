@@ -47,16 +47,12 @@ void error_update(){
 	checkTimerTimes();
 	checkDisplayInit();
 	checkMotorSpeed();
+	checkBatterySOC();
+	checkStartAnimation();
 
+	// Reset notification if an error was shown
 	if(millis() > error.timeNotificationShown + TIMEOUT_NOTIFICATION_SHOWN)
 		resetNotificationShown();
-
-	#ifdef ENABLE_BATTERY_CAPACITY_CHECK
-		checkBatteryCapacity();
-	#endif
-	#ifdef SSD13006_ENABLE_START_ANIMATION
-		checkStartAnimation();
-	#endif
 }
 
 void checkAllErrors(){
@@ -103,25 +99,36 @@ void checkDisplayInit(){
 		error.displayInit = true;
 }
 
-void checkBatteryCapacity(){
+void checkBatterySOC(){
+	// If no batterie is used stop error checking
+	#ifndef USE_BATTERY
+		return;
+	#endif
+
 	// <5% value means the ADC cannot work properly
 	// In this case the flap should not switch into the error state
 	if(error_delay(&warnNoBatteryData, bms.soc < 5, TIMEOUT_WARN_NO_BATTERY_DATA))
 		warning.noBatteryData = true;
-		else warning.noBatteryData = false;
+	else {
+		warning.noBatteryData = false;
+
+		// Set empty battery error
+		if(error_delay(&errBatteryEmpty, bms.soc < ERROR_BATTERY_EMPTY_PERCENTAGE , TIMEOUT_ERROR_BATTERY_EMPTY))
+			error.emptyBattery = true;
+	}
 
 	// Set low battery warning. Set to false if the error is setting true
 	if(error_delay(&warnBatteryLow, bms.soc < WARNING_BATTERY_LOW_PERCENTAGE && !error.emptyBattery, TIMEOUT_WARN_BATTERY_LOW))
 		warning.lowBattery = true;
 	else if(error.emptyBattery)
 		warning.lowBattery = false;
-
-	// Set empty battery error
-	if(error_delay(&errBatteryEmpty, bms.soc < ERROR_BATTERY_EMPTY_PERCENTAGE, TIMEOUT_ERROR_BATTERY_EMPTY))
-		error.emptyBattery = true;
 }
 
 void checkStartAnimation(){
+	#ifndef SSD13006_ENABLE_START_ANIMATION
+		return;
+	#endif
+
 	if(warning.startAnimation)
 		// Stop start animation in error case
 		startAnimation.enable = false;
