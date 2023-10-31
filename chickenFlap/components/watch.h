@@ -8,6 +8,7 @@
 #include "display.h"
 #include "time.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
+#include "DS3231RealTimeClkModule.h"
 
 typedef struct{
 	uint8_t hour;

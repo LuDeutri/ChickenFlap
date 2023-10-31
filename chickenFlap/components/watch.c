@@ -18,7 +18,10 @@ void watch_init(){
 
 		if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
 			error.watchRTCbroken = true;
-	#else
+
+	#elif USE_DS3231
+		ds3231_init(I2C_BUS);
+	 #else
 		setInitialTime();
 		actuallyTime = 0;
 	#endif

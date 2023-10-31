@@ -25,9 +25,11 @@
 // Enable RTC using otherwise the system clk is used for the watch
 //#define USE_RTC
 
+// Define if DS3231 module is used for rtc time
+//#define USE_DS3231
+
 // Define if a battery is used to activate error check and display monitoring of SOC
 //#define USE_BATTERY
-
 
 
 //---------- Language ----------------
