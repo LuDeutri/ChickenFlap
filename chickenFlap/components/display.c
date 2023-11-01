@@ -639,6 +639,7 @@ void displayNavigation(){
 			// End set watch digits if minutes is selected and Enter is pushed
 			else if (display.watchSelect == WATCH_SELECT_MINUTE){
 				display.watchSelect = WATCH_SELECT_NONE;
+				watch_setTime(watch.hour, watch.minute, 0);
 			}
 		}
 
@@ -700,7 +701,7 @@ void displayNavigation(){
 						watch.minute--;
 				}
 			}
-			// Set rtc time
+			// Set watch time
 			watch_setTime(watch.hour, watch.minute, 0);
 		}
 		break;
