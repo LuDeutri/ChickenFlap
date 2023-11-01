@@ -16,8 +16,10 @@ void button_init(){
 void button_update(){
 	buttonPingReset();
 	readButtonState();
+	anyButtonPushed();
 	setButtonTime();
 	buttonFlapCtrl();
+	buttonJoker();
 }
 
 void readButtonState(){
@@ -49,7 +51,8 @@ void setButtonTime(){
 			|| button.buttonMenuBack
 			|| button.buttonLeft
 			|| button.buttonRight
-			|| button.buttonFlapCtrl))
+			|| button.buttonFlapCtrl
+			|| button.buttonJoker))
 	{
 		button.firstTimeButtonPressed = button.lastTimeButtonPressed = millis();
 		// If display off, dont set a button ping
@@ -59,7 +62,7 @@ void setButtonTime(){
 }
 
 void buttonFlapCtrl(){
-	// Return if button is not pressed
+	// Stop if button is not pressed
 	if(button.buttonFlapCtrl == LOW || !button.onePingIfButtonPressed)
 		return;
 
@@ -114,12 +117,29 @@ void buttonFlapCtrl(){
 	}
 }
 
+void buttonJoker(){
+	// Stop if button is not pressed
+	if(button.buttonJoker == LOW || !button.onePingIfButtonPressed)
+		return;
+
+	// Stop if system clk is used
+	#if !(defined(USE_RTC) || defined(USE_DS3231))
+		return;
+	#endif
+
+	// Start startanimation
+	startAnimation.enable = true;
+	startAnimation.sloganFinished = false;
+	startAnimation.movieFinished = false;
+	ssd1306StartAnimation();
+}
+
 void buttonPingReset(){
 	button.onePingIfButtonPressed = false;
 }
 
 bool anyButtonPushed(){
-	if(button.buttonFlapCtrl || button.buttonLeft || button.buttonMenuBack || button.buttonMenuEnter || button.buttonRight)
+	if(button.buttonFlapCtrl || button.buttonLeft || button.buttonMenuBack || button.buttonMenuEnter || button.buttonRight || button.buttonJoker)
 		return true;
 	return false;
 }

@@ -50,6 +50,11 @@ void setButtonTime();
 void buttonFlapCtrl();
 
 /*
+ * Button is used to start the start animation again. Only possible if the system clk is not used
+ */
+void buttonJoker();
+
+/*
  * If ping is true set it false.
  *
  * This method must called before readButtonState().

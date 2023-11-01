@@ -7,6 +7,7 @@ pictureDef_t chickenStandardDef;
 pictureDef_t chickenStrechedDef;
 pictureDef_t chickenFlapOpenedDef;
 pictureDef_t chickenFlapClosedDef;
+util_time_t sloganStartTime;
 
 
 // 18 x 52
@@ -276,8 +277,14 @@ void ssd1306StartAnimation_init(){
 		startAnimation.sloganFinished = false;
 	#endif
 
+	startAnimation.movieFinished = true;
+	#ifdef SSD13006_START_ANIMATION_MOVIE_SCENE
+		startAnimation.movieFinished = false;
+	#endif
+
 	startAnimation.roundMovie = 0;
 	startAnimation.roundSlogan = -1;
+	sloganStartTime = 0;
 	startAnimation.drawHeartFinished = false;
 
 	heartDef.tableHeight = 30;
@@ -317,7 +324,7 @@ void ssd1306StartAnimation_init(){
 }
 
 void ssd1306StartAnimation(){
-	if (!startAnimation.enable || millis() > TIMEOUT_MAX_START_ANIMATION_TIME)
+	if (!startAnimation.enable)
 		return;
 	if (!SSD1306.Initialized)
 		return;
@@ -341,6 +348,7 @@ void ssd1306StartAnimation_slogan(){
 	// Stop if already finished
 	if(startAnimation.sloganFinished){
 		startAnimation.roundSlogan = -1;
+		sloganStartTime = millis();
 		return;
 	}
 
@@ -359,13 +367,13 @@ void ssd1306StartAnimation_slogan(){
 	ssd1306_SetCursor(10,22);
 	ssd1306_WriteString(strhappyChicken, Font_6x8, White);
 
-	if (millis()>1000 && millis() < 15000) {
+	if (millis() - sloganStartTime > 1000 && millis() - sloganStartTime < 15000) {
 		drawPicture(40, 60, heartDef);
 		// Hold display for a couple of seconds
 		delayMillis(6000);
 		// Finish slogan
 		startAnimation.sloganFinished = true;
-	} else if(millis()>2000)
+	} else if(millis() - sloganStartTime > 15000)
 		// Overtime after 15 seconds
 		startAnimation.sloganFinished = true;
 }
