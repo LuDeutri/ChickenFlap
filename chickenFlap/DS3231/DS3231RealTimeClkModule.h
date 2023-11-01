@@ -2,9 +2,11 @@
  * The module consists of a DS3231 RTC Clock chip and Atmel AT24C32 EEPROM
  * chip. The AT24C32 has memory storage capacity of 32kB and uses the I2C bus
  * interface with 0x57 address which can be modified. It has a capability of setting
- *
  * the time and date, checking and clearing alarms and logging data with a times-*
  * tamp.
+ *
+ * - Digital Temp Sensor Output: ±3°C Accuracy
+ * - Battery-Backup Input for Continuous Timekeeping
  *
  *  Created on: 28.10.2023
  *      Author: Luca Deutrich
@@ -13,12 +15,11 @@
 #ifndef COMPONENTS_DS3231REALTIMECLKMODULE_H_
 #define COMPONENTS_DS3231REALTIMECLKMODULE_H_
 
-#include "config.h"
 #include "../dart/hal_wrapper/hal_wrapper.h"
 
-
 // I2C communication address
-#define I2C_ADDRESSE_DS3231 0x57
+#define I2C_ADDRESSE_DS3231 0xD0
+
 
 // Register addresses
 #define REGISTER_CONTROL 0xE
@@ -43,21 +44,55 @@ typedef enum{
 	MODE_12_HOUR
 }hourMode_t;
 
+typedef enum{
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY
+}dayOfWeek_t;
+
 typedef struct{
 	uint8_t second;
 	uint8_t minute;
 	uint8_t hour;
-	uint8_t day;
+	uint8_t dayOfWeek;
+	uint8_t dayOfMonth;
 	uint8_t month;
 	uint8_t year;
-} ds3231_time;
-extern ds3231_time timeReg;
+} ds3231_t;
+extern ds3231_t timeReg;
 
-bool ds3231_init(uint8_t i2cBus);
+bool ds3231_init();
 
-bool ds3231_setTime(uint8_t i2cBus, uint8_t regAddress, uint8_t *data);
-bool ds3231_readTime(uint8_t i2cBus, uint8_t regAddress, uint8_t *data);
+bool ds3231_setTime(uint8_t sec, uint8_t min, uint8_t hour, uint8_t dow, uint8_t dom, uint8_t month, uint8_t year);
+bool ds3231_setTimeShort(uint8_t sec, uint8_t min, uint8_t hour);
 
+bool ds3231_readTime();
 
+bool ds3231_readTemp(float *data);
+
+/*
+ * Reads temperature data out
+ * @return temperature as float
+ */
+float getTemp();
+
+/*
+ * Forces the conversion of the temperature by writing into the CONV bit of the control register at the location 05h
+ */
+bool forceTempDataConv();
+
+/*
+ * Convert decimal into binary coded decimal
+ */
+uint8_t decToBcd(int val);
+
+/*
+ * Convert binary coded decimal into decimal
+ */
+int bcdToDec(uint8_t val);
 
 #endif
