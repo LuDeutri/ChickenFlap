@@ -13,7 +13,7 @@
 // If not used comment out the corresponding lines
 
 // Enable start animation
-#define SSD13006_ENABLE_START_ANIMATION
+//#define SSD13006_ENABLE_START_ANIMATION
 // Enable start animation slogan
 #define SSD13006_START_ANIMATION_SLOGAN
 // Enable start animation movie scene
@@ -26,7 +26,7 @@
 //#define USE_RTC
 
 // Define if DS3231 module is used for rtc time
-//#define USE_DS3231
+#define USE_DS3231
 
 // Define if a battery is used to activate error check and display monitoring of SOC
 //#define USE_BATTERY
@@ -82,7 +82,7 @@
 
 // ------------ Motor ------------
 // Define default motor running time if no battery data are used
-#define DEFAULT_MOTOR_RUNNING_TIME 1000 // ms
+#define DEFAULT_MOTOR_RUNNING_TIME 5000 // ms
 
 
 // ------------ Flap timer ------------

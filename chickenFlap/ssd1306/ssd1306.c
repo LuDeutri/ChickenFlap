@@ -224,7 +224,7 @@ char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
     uint32_t i, b, j;
     
     // Check if character is valid
-    if (ch < 32 || ch > 126)
+    if (ch < 32 || ch > 127)
         return 0;
     
     // Check remaining space on current line
