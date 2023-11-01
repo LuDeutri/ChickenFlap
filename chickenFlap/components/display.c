@@ -25,6 +25,10 @@ void display_update(){
 		return;
 	}
 
+	// Stop if start animation is running
+	if(startAnimation.enable)
+		return;
+
 	displayNavigation();
 	displayStateMachine();
 }
@@ -97,6 +101,9 @@ void displayStateMachine() {
 	char strTimerCloseTimeMinutes[7] = "";
 	sprintf(strTimerCloseTimeMinutes, "%02d", timer.closeFlapTime_minute);
 
+	char strTemperature[6] ="";
+	sprintf(strTemperature, "%.1f%cC", temperature,127); //temperature in degrees with X°C
+
 	// If only opening function of the timer is active
 	if(timer.timerState == TIMER_ONLY_OPEN){
 		strcat(strTimerTime, "(");
@@ -152,10 +159,22 @@ void displayStateMachine() {
 		if(millis() % 1000 < 700) {
 			ssd1306_SetCursor(80,0);
 			#ifdef USE_BATTERY
-			ssd1306_SetCursor(80,9);
+				ssd1306_SetCursor(80,9);
 			#endif
 			ssd1306_WriteString(strFailure, Font_6x8, White);
 		}
+	} else { // Show temperature if no error or warning is active
+		// Stop if temperature sensor (rtc module DS3231) is not used
+		#ifndef USE_DS3231
+			return;
+		#endif
+
+		// If battery is not used, use top right of the display. Otherwise below there the capacity is shown
+		ssd1306_SetCursor(90,0);
+		#ifdef USE_BATTERY
+			ssd1306_SetCursor(90,9);
+		#endif
+		ssd1306_WriteString(strTemperature, Font_6x8, White);
 	}
 
 	// Flap status (OPENED / CLOSED / OPENING / CLOSING)
