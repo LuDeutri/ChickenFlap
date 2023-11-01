@@ -62,13 +62,13 @@ void chickenFlap_update(){
 	// Update debug LED
 	#ifdef ENABLE_DEBUG_LED
 		util_time_t tmp = millis();
-		if(millis() < 7000) {
+		if(millis() < 10000) {
 			// LED start animation
-			digitalWrite(DEBUG_LED_BLUE, tmp > 1500 && tmp < 4500);
-			digitalWrite(DEBUG_LED_GREEN, tmp > 2000 && tmp < 5000);
-			digitalWrite(DEBUG_LED_YELLOW, tmp > 2500 && tmp < 5500);
-			digitalWrite(DEBUG_LED_ORANGE, tmp > 3500 && tmp < 6000);
-			digitalWrite(DEBUG_LED_RED, tmp > 4000 && tmp < 6500);
+			digitalWrite(DEBUG_LED_BLUE, tmp > 1000 && tmp < 6000);
+			digitalWrite(DEBUG_LED_GREEN, tmp > 2000 && tmp < 7000);
+			digitalWrite(DEBUG_LED_YELLOW, tmp > 3000 && tmp < 8000);
+			digitalWrite(DEBUG_LED_ORANGE, tmp > 4000 && tmp < 9000);
+			digitalWrite(DEBUG_LED_RED, tmp > 5000 && tmp < 9500);
 		} else if (stateMachine.state==STATE_ERROR){
 			// LED error state
 			digitalWrite(DEBUG_LED_BLUE, 0);
@@ -85,11 +85,11 @@ void chickenFlap_update(){
 			digitalWrite(DEBUG_LED_RED, 0);
 		 } else {
 			// LED normal operation state
-			digitalWrite(DEBUG_LED_BLUE, tmp % 4000 > 0);
-			digitalWrite(DEBUG_LED_GREEN, tmp % 4000 > 1000);
-			digitalWrite(DEBUG_LED_YELLOW, tmp % 4000 > 2000);
-			digitalWrite(DEBUG_LED_ORANGE, tmp % 4000 > 3000);
-			digitalWrite(DEBUG_LED_RED, 0);
+			digitalWrite(DEBUG_LED_BLUE, tmp % 5000 > 0);
+			digitalWrite(DEBUG_LED_GREEN, tmp % 5000 > 1000);
+			digitalWrite(DEBUG_LED_YELLOW, tmp % 5000 > 2000);
+			digitalWrite(DEBUG_LED_ORANGE, tmp % 5000 > 3000);
+			digitalWrite(DEBUG_LED_RED, tmp % 5000 > 4000);
 		 }
 	#endif
 
