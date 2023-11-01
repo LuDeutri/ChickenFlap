@@ -28,13 +28,16 @@ void bms_update(){
 	calculateSOC();
 }
 
+int voltage;
 void readBatteryVoltage() {
 	// Sum of sampled values to calculate an averaged one
-	tmpSum += getADC(ADC_BATTERY_VOLTAGE)*((ADC_VOLTAGE_DIVIDER_R1+ADC_VOLTAGE_DIVIDER_R2)/ADC_VOLTAGE_DIVIDER_R2);
+
+
+	tmpSum += (getADC(ADC_BATTERY_VOLTAGE)*((ADC_VOLTAGE_DIVIDER_R1+ADC_VOLTAGE_DIVIDER_R2)/ADC_VOLTAGE_DIVIDER_R2))*BMS_VOLATAGE_CORRECTION_FACTOR;
 	loopRound++;
 
 	// Check if enough values are sampled
-	if(loopRound < 50)
+	if(loopRound < 20)
 		return;
 
 	// Calculate averaged value
