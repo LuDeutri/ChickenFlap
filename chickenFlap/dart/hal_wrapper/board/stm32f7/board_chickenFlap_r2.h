@@ -195,7 +195,7 @@ extern RTC_HandleTypeDef hrtc;
 // I2C
 #define I2C_COUNT 1
 #define I2C_MAP { &hi2c4 }
-#define I2C 0
+#define I2C_BUS 0
 
 #endif
 #endif
