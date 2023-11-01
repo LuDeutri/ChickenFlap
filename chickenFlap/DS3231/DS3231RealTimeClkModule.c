@@ -3,8 +3,14 @@
 ds3231_t timeReg;
 
 bool ds3231_init(){
-	if(ds3231_setTime(0, 0, 12, FRIDAY, 3, 11, 23) != HAL_OK)
-		return false;
+	// The DS3231 module has an battery included, so the clk is continuing if the uC is restarting.
+	// To prevent that the time must set again, the inital set of the clk time should only be used in the first flash
+	// of a software revision
+	#ifdef FIRST_SOFTWARE_FLASH
+		if(ds3231_setTime(0, 0, 12, FRIDAY, 3, 11, 23) != HAL_OK)
+			return false;
+	#endif
+
 	return true;
 }
 

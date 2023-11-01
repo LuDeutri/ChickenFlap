@@ -28,9 +28,15 @@
 // Define if DS3231 module is used for rtc time
 #define USE_DS3231
 
-// Define if a battery is used to activate error check and display monitoring of SOC
-//#define USE_BATTERY
+// Only relevant if DS3231 is used. Prevent that the time is overwritten at every restart of the uC
+// Should be defined if changes in the watch code were done
+//#define FIRST_SOFTWARE_FLASH
 
+// Define if a battery is used to activate error check and display monitoring of SOC
+#define USE_BATTERY
+
+//---------- Watch ----------------
+#define FIRST_SOFTWARE_FLASH // Only relevant if DS3231 is used
 
 //---------- Language ----------------
 // If no other language is enabled, english is used
@@ -47,11 +53,11 @@
 #define TIMEOUT_ERROR_TIMER_TIMES 600000 	// 10 minutes
 #define TIMEOUT_ERROR_DISPLAY_INIT 10000 	// 10 seconds
 #define TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME 120000 // ms <=> 120 seconds
-#define TIMEOUT_ERROR_BATTERY_EMPTY 50000 // 50 seconds
+#define TIMEOUT_ERROR_BATTERY_EMPTY 600000 // 100 seconds
 
 // Warning
-#define TIMEOUT_WARN_NO_BATTERY_DATA 30000	// 30 seconds
-#define TIMEOUT_WARN_BATTERY_LOW 40000 // 40 seconds
+#define TIMEOUT_WARN_NO_BATTERY_DATA 300000
+#define TIMEOUT_WARN_BATTERY_LOW 400000
 
 // Define time without any pressed buttons until the statemachine switch into Sleepmode and turn off the display
 #define TIMEOUT_SLEEP_MODE 60000 // ms (1 min)
@@ -72,12 +78,13 @@
 #define CELL_OVERVOLTAGE_CAR_BATTERY 14000 // mV
 // Undervoltage threshold
 #define CELL_UNDERVOLTAGE_CAR_BATTERY 10000 // mV
-
+// Correction factor
+#define BMS_VOLATAGE_CORRECTION_FACTOR 0.533601492239f // ADC value 4095 means 2.045V + inaccuracies in voltage divider resistors
 
 // ------------ PCB Hardware ------------
 // Resistor values of the voltage divider of the ADC input
 #define ADC_VOLTAGE_DIVIDER_R1 10000 // Ohm
-#define ADC_VOLTAGE_DIVIDER_R2 1800	// Ohm
+#define ADC_VOLTAGE_DIVIDER_R2 1820	// Ohm
 
 
 // ------------ Motor ------------
