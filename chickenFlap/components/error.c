@@ -16,7 +16,7 @@ void error_init(){
 	error.timerTimes = false;
 	error.displayInit = false;
 	error.emptyBattery = false;
-	error.watchRTCbroken = false;
+	error.watchError = false;
 	error.timeNotificationShown = 0;
 	strcpy(error.errorDescription, "");
 
@@ -56,7 +56,7 @@ void error_update(){
 }
 
 void checkAllErrors(){
-	if(error.stateMachine || error.motorMaxRunningTime || error.safetyTest || error.timerTimes || error.displayInit || error.emptyBattery || error.watchRTCbroken){
+	if(error.stateMachine || error.motorMaxRunningTime || error.safetyTest || error.timerTimes || error.displayInit || error.emptyBattery || error.watchError){
 		nextState(STATE_ERROR);
 		// Show error on the display
 		showNotificationWindow();
@@ -162,7 +162,7 @@ void showNotificationWindow(){
 	else stop = false;
 	if(!error.timerTimes || (error.timerTimes && error.notifications[ERROR_TIMER_TIMES])) stop &= true;
 	else stop = false;
-	if(!error.watchRTCbroken || (error.watchRTCbroken && error.notifications[ERROR_RTC])) stop &= true;
+	if(!error.watchError || (error.watchError && error.notifications[ERROR_RTC])) stop &= true;
 	else stop = false;
 	if(!error.displayInit || (error.displayInit && error.notifications[ERROR_DISPLAY_INIT])) stop &= true;
 	else stop = false;
@@ -252,7 +252,7 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Sofware Fehler/erkannt. Beide/MOSFET`s sind/gleichzeitig aktiv");
 		else if(error.timerTimes)
 			strcat(error.errorDescription, "Timer oeffnen und/schliessen Zeit/duerfen nicht/gleich sein./Neustart notwendig.");
-		else if(error.watchRTCbroken)
+		else if(error.watchError)
 			strcat(error.errorDescription, "Uhrzeit kalibrierung/nicht möglich.");
 		else if(error.displayInit)
 			strcat(error.errorDescription, "Display antwortet/nicht.");
@@ -284,7 +284,7 @@ void setErrorDescription(){
 			strcat(error.errorDescription, "Sofware error/detected./Both MOSFET´s were/switched on at the/same time.");
 		else if(error.timerTimes)
 			strcat(error.errorDescription, "Timer Open and/closing time must/not be the same/Flap is deactivated./Restart the flap.");
-		else if(error.watchRTCbroken)
+		else if(error.watchError)
 			strcat(error.errorDescription, "Watch not working.");
 		else if(error.displayInit)
 			strcat(error.errorDescription, "Hardware error/detected./Display does not/initialize.");
@@ -314,7 +314,7 @@ void setNotificationShown(){
 	else if(error.motorMaxRunningTime && !error.notifications[ERROR_MOTOR_MAX_RUNNING_TIME])error.notifications[ERROR_MOTOR_MAX_RUNNING_TIME] = true;
 	else if(error.safetyTest && !error.notifications[ERROR_SAFETY_TEST])					error.notifications[ERROR_SAFETY_TEST] = true;
 	else if(error.timerTimes && !error.notifications[ERROR_TIMER_TIMES]) 					error.notifications[ERROR_TIMER_TIMES] = true;
-	else if(error.watchRTCbroken && !error.notifications[ERROR_RTC])						error.notifications[ERROR_RTC] = true;
+	else if(error.watchError && !error.notifications[ERROR_RTC])						error.notifications[ERROR_RTC] = true;
 	else if(error.displayInit && !error.notifications[ERROR_DISPLAY_INIT]) 					error.notifications[ERROR_DISPLAY_INIT] = true;
 	else if(error.emptyBattery && !error.notifications[ERROR_EMPTY_BATTERY]) 				error.notifications[ERROR_EMPTY_BATTERY] = true;
 	else if(warning.lowBattery && !error.notifications[WARNING_LOW_BATTERY]) 				error.notifications[WARNING_LOW_BATTERY] = true;
@@ -426,9 +426,9 @@ void errorTest(){
 
 	// Display RTC error
 	if(millis() > 185000 && millis() < 195000)
-		error.watchRTCbroken = 1;
+		error.watchError = 1;
 	else if (millis() > 196000) {
-		error.watchRTCbroken = 0;
+		error.watchError = 0;
 		nextState(STATE_FLAP_CLOSE);
 	}
 

@@ -47,7 +47,7 @@ typedef struct{
 	bool timerTimes;
 	bool displayInit;
 	bool emptyBattery;
-	bool watchRTCbroken;
+	bool watchError;
 	bool motorSpeedIsMax;
 	char errorDescription[255];
 	bool notifications[12]; // Value is true if the error with the index, of the enum, was shown already
