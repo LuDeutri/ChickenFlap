@@ -20,7 +20,7 @@
 #define SSD13006_START_ANIMATION_MOVIE_SCENE
 
 // Enable DEBUG LED
-#define ENABLE_DEBUG_LED
+//#define ENABLE_DEBUG_LED
 
 // Enable RTC using otherwise the system clk is used for the watch
 //#define USE_RTC
@@ -34,6 +34,7 @@
 
 // Define if a battery is used to activate error check and display monitoring of SOC
 #define USE_BATTERY
+//#define ENABLE_BATTERY_ERR_CHECK
 
 //---------- Watch ----------------
 #define FIRST_SOFTWARE_FLASH // Only relevant if DS3231 is used

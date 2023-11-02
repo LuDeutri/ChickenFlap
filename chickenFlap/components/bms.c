@@ -57,9 +57,11 @@ void calculateSOC(){
 	uint16_t cellVoltage = bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY;
 
 	// Check cell voltage for plausibilty
-	if (cellVoltage > CELL_OVERVOLTAGE_CAR_BATTERY || cellVoltage < CELL_UNDERVOLTAGE_CAR_BATTERY) // Check for valid value
-		error.emptyBattery = true;
-	else if (cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
+	if (cellVoltage > CELL_OVERVOLTAGE_CAR_BATTERY || cellVoltage < CELL_UNDERVOLTAGE_CAR_BATTERY){ // Check for valid value
+		#ifdef ENABLE_BATTERY_ERR_CHECK
+			error.emptyBattery = true;
+		#endif
+	} else if (cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
 		bms.soc = 0;
 	else if (cellVoltage >= ocvCarBattery[100]) // Check for full Battery
 		bms.soc = 100;

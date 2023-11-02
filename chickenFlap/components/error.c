@@ -101,7 +101,7 @@ void checkDisplayInit(){
 
 void checkBatterySOC(){
 	// If no batterie is used stop error checking
-	#ifndef USE_BATTERY
+	#if !(defined(USE_BATTERY) && defined(ENABLE_BATTERY_ERR_CHECK))
 		return;
 	#endif
 
