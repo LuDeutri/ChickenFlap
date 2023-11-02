@@ -13,7 +13,7 @@
 // If not used comment out the corresponding lines
 
 // Enable start animation
-//#define SSD13006_ENABLE_START_ANIMATION
+#define SSD13006_ENABLE_START_ANIMATION
 // Enable start animation slogan
 #define SSD13006_START_ANIMATION_SLOGAN
 // Enable start animation movie scene
@@ -91,6 +91,7 @@
 // ------------ Motor ------------
 // Define default motor running time if no battery data are used
 #define DEFAULT_MOTOR_RUNNING_TIME 5000 // ms
+#define MOTOR_CLOSING_RUNNING_TIME_CORRECTION -1000 //ms
 
 
 // ------------ Flap timer ------------
