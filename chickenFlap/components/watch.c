@@ -42,6 +42,10 @@ void watch_init(){
 }
 
 void watch_update(){
+	// Stop if watch time is setting by human on the display
+	if(display.displayPage == DISPLAY_WATCH)
+		return;
+
 	// -------------------- uC RTC ----------------------
 	#ifdef USE_RTC
 		RTC_TimeTypeDef getTime = {0};
@@ -114,7 +118,7 @@ void watch_setTime(uint8_t h, uint8_t m, uint8_t s){
 
 	// ---------------- DS3231 module RTC ----------------
 	#elif defined(USE_DS3231)
-		ds3231_setTimeShort(h, m, s);
+		ds3231_setTimeShort(s,m,h);
 
 	// ----------------- System clk ---------------------
 	#else
