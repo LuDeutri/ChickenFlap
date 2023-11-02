@@ -91,6 +91,12 @@ void chickenFlap_update(){
 			digitalWrite(DEBUG_LED_ORANGE, tmp % 5000 > 3000);
 			digitalWrite(DEBUG_LED_RED, tmp % 5000 > 4000);
 		 }
+	#else
+		digitalWrite(DEBUG_LED_BLUE, 0);
+		digitalWrite(DEBUG_LED_GREEN, 0);
+		digitalWrite(DEBUG_LED_YELLOW, 0);
+		digitalWrite(DEBUG_LED_ORANGE, 0);
+		digitalWrite(DEBUG_LED_RED, 0);
 	#endif
 
 }
