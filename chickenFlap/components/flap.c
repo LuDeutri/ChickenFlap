@@ -98,7 +98,9 @@ void motorCtrl(uint8_t direction) {
 	measureMotorOperationTime();
 
 	// Switch to error state if the motor never stops or is running 3 Seconds about setted runningTime
-	if(flap.motorRunningTime >= TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME || ((flap.motorRunningTime >= flap.motorOperationTime+3000) && flap.motorOperationTimeSetted))
+	if(flap.motorRunningTime >= TIMEOUT_ERROR_MAX_MOTOR_RUNNING_TIME
+			|| ((flap.motorRunningTime >= flap.motorOperationTime+3000) && flap.targetStateFlap == FLAP_OPENED && flap.motorOperationTimeSetted)
+			|| ((flap.motorRunningTime >= flap.motorOperationTime+MOTOR_CLOSING_RUNNING_TIME_CORRECTION+3000) && flap.targetStateFlap == FLAP_CLOSED && flap.motorOperationTimeSetted))
 		error.motorMaxRunningTime = true;
 
 	// If the motor motion was break in the middle, stop the reverse motion after the same time it was break up before
@@ -110,7 +112,8 @@ void motorCtrl(uint8_t direction) {
 	}
 
 	// Wait for timer and stop motor
-	else if (flap.motorRunningTime >= flap.motorOperationTime && flap.motorOperationTimeSetted)
+	else if ((flap.motorRunningTime >= flap.motorOperationTime && flap.targetStateFlap == FLAP_OPENED && flap.motorOperationTimeSetted)
+			|| (flap.motorRunningTime >= flap.motorOperationTime+MOTOR_CLOSING_RUNNING_TIME_CORRECTION && flap.targetStateFlap == FLAP_CLOSED && flap.motorOperationTimeSetted))
 		stopMotor();
 }
 
