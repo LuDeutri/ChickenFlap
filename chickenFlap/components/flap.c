@@ -14,12 +14,12 @@ void flap_init(){
 	flap.motorEnable = true;
 	flap.motorButtonCtrlTime = 0;
 	flap.lastTimeMotorRuns = 0;
-	flap.motorSpeed = 30;
+	flap.motorSpeed = 90;
 
 	// Disable low side switches
 	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
 	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
-	digitalWrite(MOTOR_VCC_CTRL, VCC_CLOSE);
+	digitalWrite(MOTOR_VCC_CTRL, VCC_OPEN);
 
 	// Start PWM timer
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -72,6 +72,9 @@ void motorCtrl(uint8_t direction) {
 			// Should never be here
 			break;
 		}
+		// Delay for switching relay
+		dartDigital_update();
+		delayMillis(500);
 
 		// Start timer
 		motorStartingTime = millis();
@@ -121,7 +124,7 @@ void stopMotor(){
 	// Disable low side switches
 	digitalWrite(MOTOR_ENABLE_FLAP_OPEN, LOW);
 	digitalWrite(MOTOR_ENABLE_FLAP_CLOSE, LOW);
-	digitalWrite(MOTOR_VCC_CTRL, VCC_CLOSE);
+	digitalWrite(MOTOR_VCC_CTRL, VCC_OPEN);
 
 	// Update flap status if operation time is setting
 	if(flap.motorOperationTimeSetted && !flap.motorWaitForButton){
