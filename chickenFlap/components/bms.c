@@ -9,6 +9,7 @@ uint32_t tmpSum;
 void bms_init(){
 	bms.soc = 0;
 	bms.adcBatteryVoltage = 0;
+	bms.cellVoltage = 0;
 
 	loopRound = 0;
 	tmpSum = 0;
@@ -53,21 +54,25 @@ void calculateSOC(){
 		bms.soc = 0;
 		return;
 	}
+
 	// Calculate cell voltage
-	uint16_t cellVoltage = bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY;
+	if(bms.cellVoltage == 0)
+		bms.cellVoltage = bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY;
+	else
+		bms.cellVoltage = lowPassFilter(bms.adcBatteryVoltage / CELL_NUMBER_12V_CAR_BATTERY / 1000, bms.cellVoltage, 0.001);
 
 	// Check cell voltage for plausibilty
-	if (cellVoltage > CELL_OVERVOLTAGE_CAR_BATTERY || cellVoltage < CELL_UNDERVOLTAGE_CAR_BATTERY){ // Check for valid value
+	if (bms.cellVoltage > CELL_OVERVOLTAGE_CAR_BATTERY || bms.cellVoltage < CELL_UNDERVOLTAGE_CAR_BATTERY){ // Check for valid value
 		#ifdef ENABLE_BATTERY_ERR_CHECK
 			error.emptyBattery = true;
 		#endif
-	} else if (cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
+	} else if (bms.cellVoltage <= ocvCarBattery[0]) // Check for an empty battery
 		bms.soc = 0;
-	else if (cellVoltage >= ocvCarBattery[100]) // Check for full Battery
+	else if (bms.cellVoltage >= ocvCarBattery[100]) // Check for full Battery
 		bms.soc = 100;
 	else
 		// Get table value for cell voltage value
-		bms.soc = findNearestValueIdentifier(cellVoltage);
+		bms.soc = findNearestValueIdentifier(bms.cellVoltage);
 }
 
 uint8_t findNearestValueIdentifier(uint16_t cellVoltage) {
@@ -85,4 +90,8 @@ uint8_t findNearestValueIdentifier(uint16_t cellVoltage) {
         }
     }
     return identifier;
+}
+
+float lowPassFilter(float newValue, float oldValue, float factor) {
+    return newValue * (1.0f - factor) + oldValue * factor;
 }

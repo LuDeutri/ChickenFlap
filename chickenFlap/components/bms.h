@@ -17,7 +17,8 @@
 
 typedef struct{
 	uint8_t soc;
-	uint16_t adcBatteryVoltage;
+	float adcBatteryVoltage;
+	float cellVoltage;
 } bms_t;
 extern bms_t bms;
 
@@ -68,5 +69,7 @@ void calculateSOC();
  * @return: identifer of nearst ocv value --> soc value for the given cellvoltage
  */
 uint8_t findNearestValueIdentifier(uint16_t cellVoltage);
+
+float lowPassFilter(float newValue, float oldValue, float factor);
 
 #endif
