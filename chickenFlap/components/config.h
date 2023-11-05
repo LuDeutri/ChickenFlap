@@ -90,8 +90,8 @@
 
 // ------------ Motor ------------
 // Define default motor running time if no battery data are used
-#define DEFAULT_MOTOR_RUNNING_TIME 5000 // ms
-#define MOTOR_CLOSING_RUNNING_TIME_CORRECTION -1000 //ms
+#define DEFAULT_MOTOR_RUNNING_TIME 2000 // ms
+#define MOTOR_CLOSING_RUNNING_TIME_CORRECTION_FACTOR 0.6f //ms
 
 
 // ------------ Flap timer ------------
