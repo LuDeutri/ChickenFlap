@@ -83,9 +83,15 @@ void displayStateMachine() {
 		char strBatValue[10] = "";
 		sprintf(strBatValue,"%d", bms.soc);
 		strcat(strBatValue, "%");
-
 		ssd1306_SetCursor(104,0);
 		ssd1306_WriteString(strBatValue, Font_6x8, White);
+
+		// Battery voltage
+		char strBatVoltage[10] = "";
+		sprintf(strBatVoltage, "%.1fV", ((float)bms.cellVoltage));
+		ssd1306_SetCursor(98,18);
+		ssd1306_WriteString(strBatVoltage, Font_6x8, White);
+
 	#endif
 
 	char strTimerTime[20] = "";
