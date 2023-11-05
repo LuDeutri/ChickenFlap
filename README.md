@@ -6,6 +6,9 @@ The case is 3d printed with an FDM Anycubic Cobra Plus printer
 ## Overview
 ![IMG_20231105_141743](https://github.com/LuDeutri/ChickenFlap/assets/56504337/6cc05d47-8a6c-4987-a504-3ab26a97609b)
 ![IMG_20231105_115016](https://github.com/LuDeutri/ChickenFlap/assets/56504337/79c37ca8-61ed-4f4a-9eb6-4f6166fc94a6)
+![IMG_PCB](https://github.com/LuDeutri/ChickenFlap/assets/56504337/324a4fe2-9858-4b81-971b-3f886f15d37b)
+
+
 
 **Buttons:**
 - *Left side:* Button Left *(at the top)*, Button Back
@@ -78,4 +81,3 @@ the motorspeed setted to low, the voltage could be to less and the motor can not
 
 ## Start Animation
 https://github.com/LuDeutri/ChickenFlap/assets/56504337/b4e869bc-d05f-4472-a457-62c742082ffb
-
